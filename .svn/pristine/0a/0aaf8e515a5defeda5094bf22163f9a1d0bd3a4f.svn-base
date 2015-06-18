@@ -1,0 +1,24 @@
+package TestsPackage;
+
+import static org.junit.Assert.*;
+import java.sql.Date;
+import models.ClubEnum;
+import models.TrainingRecord;
+import models.User;
+
+import org.junit.Test;
+
+public class TrainRecordTest {
+	private static final ClubEnum IRON5 = null;
+	@Test
+	public void test() {
+		User u1 = new User("John");
+
+		TrainingRecord g2 = new TrainingRecord(u1, new Date(System.currentTimeMillis()),
+		IRON5, "session", 150.0, 12.0, 0.0, 0.0, 0.0, 0.0);
+
+		assertEquals(u1, g2.getUser());
+//		assertEquals(new Point(), g2.getLanding());
+	}
+
+}

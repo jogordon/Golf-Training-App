@@ -1,0 +1,47 @@
+package models;
+
+public class GameSession extends ASession {
+
+	
+
+	/****************** attributes ***********************/
+	int totalScore;
+	int shotsLeft;
+	/****************** attributes ends ******************/
+
+	/****************** constructors *********************/
+	public GameSession(User user) {
+		super(user);
+		this.totalScore=0;
+		this.shotsLeft = 20;
+	}
+	/****************** constructors ends ****************/
+
+	/****************** private methods ******************/
+	// To do: Code here
+	/****************** private methods ends *************/
+
+	/****************** properties ***********************/
+	public int getTotalScore(){
+		return this.totalScore;
+	}
+	public int getShotsLeft() {
+		return shotsLeft;
+	}
+	/****************** properties ends ******************/
+
+	/****************** public methods *******************/
+	public void incrementScore(int x) {
+		totalScore += x;
+	}
+	public void decrementShotsLeft() {
+		shotsLeft--;
+	}
+	/*
+	public void addRecord(int score, Date date, ClubEnum iron){
+		this.records.add(new GameRecord(this.user, score, date, iron));
+		this.totalScore+=score;
+	}*/
+	/****************** public methods ends **************/
+
+}

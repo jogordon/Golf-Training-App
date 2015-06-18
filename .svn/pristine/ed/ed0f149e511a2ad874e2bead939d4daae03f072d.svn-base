@@ -1,0 +1,124 @@
+package views;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.*;
+
+import controllers.AAnimationScreenController;
+import controllers.ScenarioController;
+import controllers.ScenarioEnum;
+import net.miginfocom.swing.*;
+import models.PlayMode;
+
+public class GameScreen extends AAnimationScreen {
+
+	/****************** attributes ******************/
+	private static final long serialVersionUID = -3328627577622139194L;
+	JLabel lblTitle;
+	JLabel lblScore;
+	JLabel lblShotsLeft;
+	JLabel lblDistToPin;
+	JButton btnHitBall;
+	/****************** attributes ends *************/
+
+	/****************** constructors ******************/
+	public GameScreen(AAnimationScreenController controller) {
+		super(controller);
+		
+		backPanel.setLayout(new BorderLayout());
+		backPanel.add(this.animationView,BorderLayout.CENTER);
+		frontPanel.setLayout(new BorderLayout());
+		frontPanel.add(createFrontPanel(),BorderLayout.CENTER);
+		
+	}
+	/****************** constructors ends *************/
+
+	/****************** private methods ******************/
+	private JPanel createFrontPanel(){
+		JPanel frontPanel = new JPanel(new MigLayout("", "", "[]push[]")); // col: 0, row 2, push: empty between rows.
+		frontPanel.setOpaque(false); // set to transparent background
+		
+		JPanel topSubPanel = new JPanel(new MigLayout("","20[]push[]20","[][]"));// two columns, 1 row
+		topSubPanel.setOpaque(false);
+		this.lblScore=new JLabel("Score: 0");
+		this.lblScore.setForeground(Color.white);
+		this.lblScore.setFont(new Font("Arial", Font.BOLD, 32));
+		topSubPanel.add(lblScore," cell 0 0");
+		this.lblShotsLeft=new JLabel("Shots Left: 20");
+		this.lblShotsLeft.setForeground(Color.white);
+		this.lblShotsLeft.setFont(new Font("Arial", Font.BOLD, 32));
+		topSubPanel.add(lblShotsLeft,"cell 0 1");
+		this.lblDistToPin = new JLabel("Dist. to Pin: 150 yds");
+		this.lblDistToPin.setForeground(Color.white);
+		this.lblDistToPin.setFont(new Font("Arial", Font.BOLD, 32));
+		topSubPanel.add(lblDistToPin,"cell 1 0");
+		frontPanel.add(topSubPanel, "grow, pushx, wrap"); // expend to fill top. wrap: end of this row in front panel
+		
+		JPanel bottomSubPanel = new JPanel(new MigLayout("","[]push[]push[]",""));
+		frontPanel.add(bottomSubPanel ,"grow, pushx");
+		
+		bottomSubPanel.setOpaque(false);
+		bottomSubPanel.add(this.btnMainMenu,""); // don't need to create main menu button.
+		bottomSubPanel.add(createHitBallButton());
+		bottomSubPanel.add(this.getReplayButton(),"");
+		return frontPanel;
+	}
+	
+	private JButton createHitBallButton(){
+		btnHitBall= new JButton("");
+		btnHitBall.setPreferredSize(new Dimension(100, 100));
+		btnHitBall.setContentAreaFilled(false);
+		btnHitBall.setBorderPainted(false);
+		btnHitBall.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				getController().hitBall();
+			}
+		});
+		return btnHitBall;
+	}
+	/****************** private methods ends *************/
+
+	/****************** properties ******************/
+	// To do: setters and getters code here
+	/****************** properties ends *************/
+
+	/****************** public methods ******************/
+	
+	public void setMode(PlayMode mode){
+		if(mode==PlayMode.GAME){
+			//this.lblTitle.setText("Game");
+		}
+		else{
+			//this.lblTitle.setText("Train");
+		}
+	}
+	public void setTotalScore(int score){
+		this.lblScore.setText("Score: " + Integer.toString(score));
+	}
+	public void setShotNumber(int shotNumber){
+		this.lblShotsLeft.setText("Shots Left: " + Integer.toString(shotNumber));
+	}
+	public int showPopup(int score) {
+		int n = JOptionPane.showConfirmDialog(
+			    this,"Congratulations you scored " +
+			    	score + " points! \n Do you want to play again?", "End Game",
+			    JOptionPane.YES_NO_OPTION);
+		return n;
+	}
+	public void start(){
+		this.animationView.setMessage("Play Mode");
+		this.animationView.start();
+	}
+	public void stop(){
+		this.animationView.stop();
+	}
+	/****************** public methods ends *************/
+
+}

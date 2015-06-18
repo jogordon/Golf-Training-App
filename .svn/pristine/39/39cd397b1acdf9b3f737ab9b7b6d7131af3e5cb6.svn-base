@@ -1,0 +1,164 @@
+package views;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import controllers.AAnimationScreenController;
+import net.miginfocom.swing.MigLayout;
+import models.GameRecord;
+
+public class HighScoreScreen extends AAnimationScreen {
+
+	/****************** attributes ***********************/
+
+	private static final long serialVersionUID = -3148037149005849890L;
+
+	final Dimension SIZE = new Dimension(400, 400);
+	JLabel title;
+	Object[][] gameRecordInfo;
+
+	/****************** attributes ends ******************/
+
+	/****************** constructors *********************/
+	public HighScoreScreen(AAnimationScreenController controller) {
+		super(controller);
+		backPanel.setLayout(new BorderLayout());
+		backPanel.add(this.animationView, BorderLayout.CENTER);
+
+		this.frontPanel
+				.setLayout(new MigLayout("", "20%[grow]20%", "[][grow][]"));
+		JLabel lblHeader = new JLabel("High Score");
+		lblHeader.setFont(new Font("Arial Black", Font.BOLD, 60));
+		lblHeader.setForeground(new Color(11, 104, 47));
+		this.frontPanel.add(lblHeader, "center, wrap"); // expend to fill top.
+														// wrap: end of this row
+														// in front panel
+		JScrollPane scrollPanel = new JScrollPane();
+		this.frontPanel.add(createHighScorePanel(), "grow, wrap");
+		// this.frontPanel.add(scrollPanel,"grow, wrap");
+		this.frontPanel.add(btnMainMenu, "align left");
+	}
+
+	/****************** constructors ends ****************/
+
+	/****************** private methods ******************/
+	private JTable createHighScoreTable() {
+		String[] colNames = { "USER", "HIGHSCORE", "DATE & TIME" };
+		DefaultTableModel tableModel = new DefaultTableModel(colNames, 10);
+		gameRecordInfo = new Object[14][3];
+		/*
+		 Object[][] gameRecordInfo = {
+		 { "Jay45", "800000", "5/4/13"},
+		 {"Roxy99", "780000", "5/1/13"},
+		 {"HelpMe800", "650000", "2/4/13"},
+		 {"Ray40", "575000", "3/4/14"},
+		 {"Max23", "500000", "5/4/14"},
+		 {"Ron97", "450000", "1/4/12"},
+		 {"Jake", "360000", "8/4/13"},
+		 {"Tommy", "180000", "9/9/13"},
+		 {"Dr", "140000", "5/4/10"},
+		 {"Mike", "130000", "8/4/13"}};
+		*/
+		JTable highScoreTable = new JTable(gameRecordInfo, colNames);
+		highScoreTable.setFont(new Font("Arial Black", Font.BOLD, 12));
+		
+//		Object[][] gameRecordInfo = {
+//				{ ((GameRecord) highscores.get(0)).getUser().getName(),
+//						((GameRecord) highscores.get(0)).getScore(),
+//						((GameRecord) highscores.get(0)).getDate() },
+//				{ ((GameRecord) highscores.get(1)).getUser().getName(),
+//						((GameRecord) highscores.get(1)).getScore(),
+//						((GameRecord) highscores.get(1)).getDate() },
+////					{ ((GameRecord) highscores.get(2)).getUser().getName(),
+//						((GameRecord) highscores.get(2)).getScore(),
+//						((GameRecord) highscores.get(2)).getDate() },
+//				{ ((GameRecord) highscores.get(3)).getUser().getName(),
+//						((GameRecord) highscores.get(3)).getScore(),
+//						((GameRecord) highscores.get(3)).getDate() },
+//				{ ((GameRecord) highscores.get(4)).getUser().getName(),
+//						((GameRecord) highscores.get(4)).getScore(),
+//						((GameRecord) highscores.get(4)).getDate() }};
+//				{ ((GameRecord) highscores.get(5)).getUser().getName(),
+//						((GameRecord) highscores.get(5)).getScore(),
+//						((GameRecord) highscores.get(5)).getDate() },
+//				{ ((GameRecord) highscores.get(6)).getUser().getName(),
+//						((GameRecord) highscores.get(6)).getScore(),
+//						((GameRecord) highscores.get(6)).getDate() },
+//				{ ((GameRecord) highscores.get(7)).getUser().getName(),
+//						((GameRecord) highscores.get(7)).getScore(),
+//						((GameRecord) highscores.get(7)).getDate() },
+//				{ ((GameRecord) highscores.get(8)).getUser().getName(),
+//						((GameRecord) highscores.get(8)).getScore(),
+//						((GameRecord) highscores.get(8)).getDate() },
+//				{ ((GameRecord) highscores.get(9)).getUser().getName(),
+//						((GameRecord) highscores.get(9)).getScore(),
+//						((GameRecord) highscores.get(9)).getDate() } };
+			//JTable highScoreTable = new JTable(gameRecordInfo, colNames);
+			return highScoreTable;
+	}
+
+	private JPanel createHighScorePanel() {
+		JPanel highscrPanel = new JPanel();
+		JTable hsTable = createHighScoreTable();
+		DefaultTableCellRenderer centerRender = new DefaultTableCellRenderer();
+		centerRender.setHorizontalAlignment(SwingConstants.CENTER);
+		hsTable.getColumnModel().getColumn(0).setCellRenderer(centerRender);
+		hsTable.getColumnModel().getColumn(1).setCellRenderer(centerRender);
+		hsTable.getColumnModel().getColumn(2).setCellRenderer(centerRender);
+
+		hsTable.setRowHeight(40);
+		hsTable.setFont(new Font("Serif", Font.BOLD, 20));
+		hsTable.enable(false);
+		highscrPanel.enable(false);
+		highscrPanel.setLayout(new BorderLayout());
+		highscrPanel.add(hsTable.getTableHeader(), BorderLayout.PAGE_START);
+		highscrPanel.add(hsTable, BorderLayout.CENTER);
+		hsTable.getTableHeader().setBackground(Color.WHITE);
+		hsTable.getTableHeader().setFont(new Font("Serif", Font.BOLD, 10));
+		hsTable.getTableHeader().setForeground(Color.DARK_GRAY);
+		hsTable.getTableHeader().enable(false);
+		hsTable.setBackground(Color.DARK_GRAY);
+		hsTable.setForeground(Color.white);
+
+		return highscrPanel;
+
+	}
+	public void setHighScores(ArrayList<GameRecord> records) {
+		Format formatter = new SimpleDateFormat("MM-dd-YYYY  hh:mm");
+		try {
+			for(int i = 0; i < records.size(); i++) {
+				String dateString = formatter.format(records.get(i).getDate());
+				gameRecordInfo[i][0] = records.get(i).getUser().getName();
+				gameRecordInfo[i][1] = records.get(i).getScore();
+				gameRecordInfo[i][2] = dateString;
+			}
+		}catch(Exception e) {
+			System.out.println("Too many records in high score.");
+		}
+	}
+	/****************** private methods ends *************/
+
+	/****************** properties ***********************/
+	// To do: setters and getters code here
+	/****************** properties ends ******************/
+
+	/****************** public methods *******************/
+	// @Override
+	// protected void paintComponent(Graphics g) {
+	// super.paintComponent(g);
+	// g.drawImage(ImageService.getBackground(), 0, 0, getWidth(),
+	// getHeight(), null);
+	// }
+	/****************** public methods ends **************/
+}

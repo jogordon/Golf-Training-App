@@ -1,0 +1,131 @@
+package controllers;
+
+import graph.helper.DistanceGraph;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+
+import controllers.IRopeItController;
+import views.*;
+import models.*;
+import service.*;
+
+public class HistoryController extends AAnimationScreenController {
+
+	
+	/****************** attributes ***********************/
+	// To do: Code here
+	public Date startDate;
+	public Date endDate;
+
+	/****************** attributes ends ******************/
+
+	/****************** constructors *********************/
+	public HistoryController(IRopeItController ropeitController) {
+		super(ropeitController);
+		this.scenario=new WelcomeScenario();
+		this.screen = new HistoryScreen(this);
+		setupReturnMainMenuListener();
+		//this.setupListener();
+	}
+
+	/****************** constructors ends ****************/
+
+	/****************** private methods ******************/
+	// To do: Code here
+	
+	/****************** private methods ends *************/
+
+	/****************** properties ***********************/
+	// To do: setters and getters code here
+	public User getUser() {
+		return this.ropeitController.getCurrentUser();
+	}
+	
+//	@Override
+//	public AScreen getScreen(){
+//		User u = getUser();
+//		ArrayList<Date> dates = Database.getInstance().getRecordDates(u);
+//		for (Date d : dates) {
+//			Format formatter = new SimpleDateFormat("YYYY-MM-DD");
+//			formatter.format(d);
+//			System.out.println("UNFORMATTED DATE:" + d.toString());
+//			System.out.println("FORMATTED DATE:" + formatter.format(d));
+//			((HistoryScreen)screen).sDate.addItem(formatter.format(d));
+//			((HistoryScreen)screen).eDate.addItem(formatter.format(d));
+//		}
+////		((HistoryScreen)screen).populateDates(dates);
+//		return super.getScreen();
+//	}
+	/****************** properties ends ******************/
+
+	/****************** public methods *******************/
+	// To do: Code here
+//	public void displayHistory() {
+//		//query DB for the type of records that we want
+// 		((HistoryScreen)screen).setData(DistanceGraph.getTrainingRecords());
+// 		
+//	}
+//
+//	//display the history for certain irons
+//	public void displayHistory(ClubEnum iron) {
+// 		((HistoryScreen)screen).setData(DistanceGraph.getTrainingRecords(iron));
+//	}
+//	
+//	public void displayHistory(ClubEnum iron, Date start, Date end) {
+//		((HistoryScreen)screen).setData(DistanceGraph.getTrainingRecords(iron, start, end));
+//	}
+	
+	public void displayData(String userName, Date startDate, Date 
+    	    endDate, String club) {
+		//update the model with the new data
+		((HistoryScreen)screen).setData(Database.getInstance().getTrainingRecords(userName, startDate, endDate, club));
+	}
+	
+	public void testRetrieveData(String userName, Date startDate, Date endDatae, String club) {
+		ArrayList<TrainingRecord> tr = Database.getInstance().getTrainingRecords(userName, startDate, endDate, club);
+		for (TrainingRecord r : tr ) {
+			System.out.println("Printing all the values in the databse according to the query");
+			System.out.println("This is the club type data" + club);
+			System.out.println(r.getzLanding());
+			System.out.println(r.toString());
+		}
+	}
+	
+	@Override
+	public void start(){
+		super.start();
+		// TODO: read data from databse and setup comboboxes.
+		User u = getUser();
+		ArrayList<Date> dates = Database.getInstance().getRecordDates(u);
+		((HistoryScreen)screen).populateDates(dates);
+
+	}
+	@Override
+	public void ballLanded(Ball ball) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void hitBall() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void replay() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	/****************** public methods ends **************/
+	
+}
+
+
+ 

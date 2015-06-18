@@ -1,0 +1,204 @@
+package views;
+
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+
+import javax.swing.JButton;
+import javax.swing.JPanel;
+
+import models.Ball;
+import models.Cloud;
+import models.PlotInfo;
+import models.PlotMessenger;
+import controllers.AAnimationScreenController;
+import controllers.ScenarioController;
+import service.ImageService;
+import service.OnePointPerspectiveService;
+
+public class AnimationView extends JPanel implements Runnable {
+
+	/****************** attributes ******************/
+	final Dimension SIZE = new Dimension(1024, 768);
+	private static final long serialVersionUID = -664417729007818409L;
+	private boolean running = false;
+	private Thread thread;
+	public int tickCount = 0, frameCount = 0;
+	// private BufferedImage image = new BufferedImage(SIZE.width, SIZE.height,
+	// BufferedImage.TYPE_INT_RGB);
+	// private int[]
+	// pixels=((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+	private String message;
+	JButton btnReplay ;
+	AAnimationScreenController controller;
+	
+
+	/****************** attributes ends *************/
+
+	/****************** constructors ******************/
+	public AnimationView(AAnimationScreenController controller) {
+		this.controller=controller;
+		this.btnReplay= new JButton(ImageService.scaleIcon(ImageService.getImage("Replay"), 50,50));
+		this.btnReplay.setContentAreaFilled(false);
+		this.btnReplay.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				replay();
+			}
+		});
+	}
+
+	/****************** constructors ends *************/
+
+	/****************** private methods ******************/
+	private void replay(){
+		if(controller!=null)
+			controller.replay();
+	}
+	private void drawPlotInfo(Graphics g, PlotInfo info) {
+		if (info != null) {
+			g.drawImage(info.getImage(), 
+					info.getImageStartX(),
+					info.getImageStartY(), 
+					info.getImageWidth(),
+					info.getImageHeight(), null);
+		}
+
+	}
+
+	private void drawPlotMessenger(Graphics g, PlotMessenger pm) {
+
+		// draw shadow first
+		drawPlotInfo(g, pm.getShadowInfo());
+		
+		drawPlotInfo(g, pm.getPlotElementInfo());
+		
+	}
+
+	private void drawScenario(Graphics g) {
+		for (PlotMessenger pm : this.controller.getPlotMessengers()) {
+			drawPlotMessenger(g, pm);
+		}
+	}
+
+	/****************** private methods ends *************/
+
+	/****************** properties ******************/
+	public void setMessage(String msg) {
+		this.message = msg;
+	}
+
+	/****************** properties ends *************/
+
+	/****************** public methods ******************/
+
+	public synchronized void start() {
+		if (this.running == false) {
+			this.running = true;
+			thread = new Thread(this, "Animation");
+			thread.start();
+		}
+
+	}
+	/*
+	 * should pause when scenario is adding plot elements.
+	 */
+	public synchronized void pause(){
+		this.running=false;
+	}
+	public synchronized void resume(){
+		this.running=true;
+	}
+	
+	public synchronized void stop() {
+		if (this.running == true) {
+			running = false;
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+	@Override
+	public void run() {
+		long lastTime = System.nanoTime();
+		double nsPerTick = 1000000000D / 60D;
+
+		int ticks = 0;
+		int frames = 0;
+
+		long lastTimer = System.currentTimeMillis();
+		double delta = 0;
+		while (this.running) {
+			long now = System.nanoTime();
+			delta += (now - lastTime) / nsPerTick;
+			lastTime = now;
+			boolean shouldRender = true;
+
+			while (delta >= 1) {
+				ticks++;
+				tick();
+				delta -= 1;
+				shouldRender = true;
+			}
+
+			try {
+				Thread.sleep(2);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			if (shouldRender) {
+				frames++;
+				/*
+				 * queue a hit ball action, to avoid ConcurrentModificationException of plotElements between threads 
+				 * painting thread for loop plotElement list, so, main thread should not modify it.
+				 * by add 10 ms to repaint, seems solved this problem.
+				 */
+				this.repaint(10);
+			}
+
+			if (System.currentTimeMillis() - lastTimer >= 1000) {
+				lastTimer += 1000;
+				frames = 0;
+				ticks = 0;
+			}
+		}
+
+	}
+
+	public void tick() {
+		tickCount++;
+		this.controller.tickScenario();
+	}
+
+	//@Override
+	public void paint(Graphics g) {
+		int width = getWidth();
+		int height = getHeight();
+		// update service's with and height for calculation.
+		OnePointPerspectiveService.setScreenSize(width, height);
+
+		g.fillRect(0, 0, width, height);
+		// g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
+
+		// draw background.
+		g.drawImage(ImageService.getBackground(), 0, 0, width, height, null);
+		g.drawString("", 100, 100);
+		// g.drawImage(ImageService.getImage(Ball.class), 0,0,100,100,null);
+		// g.drawImage(ImageService.getImage(Cloud.class), 200, 0,
+		// 100,100,null);
+		drawScenario(g);
+		frameCount++;
+		// System.out.println("Frame= " + frameCount);
+
+	}
+	/****************** public methods ends *************/
+
+}

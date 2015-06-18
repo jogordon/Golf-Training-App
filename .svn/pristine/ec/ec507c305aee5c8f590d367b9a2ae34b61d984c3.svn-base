@@ -1,0 +1,8 @@
+SVN Instructions:
+
+Right click on the Project Space, Select Team
+Choose to Update -- this will update all of the latest revisions from other team members onto your local machine
+Once you have crosschecked your local revisions to team member updates
+Go back to Select Team then Choose to Commit your changes
+Make sure there are no conflicts in your commits
+Click finish

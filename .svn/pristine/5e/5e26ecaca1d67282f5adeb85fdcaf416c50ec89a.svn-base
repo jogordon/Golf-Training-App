@@ -1,0 +1,188 @@
+package service;
+
+import java.awt.Point;
+import java.awt.image.BufferedImage;
+import java.sql.Struct;
+
+import org.jfree.chart.plot.Plot;
+
+import models.AAnimatedElement;
+import models.APlotElement;
+import models.Ball;
+import models.BallStatusInfo;
+import models.Cloud;
+import models.DistanceSign;
+import models.GreenView;
+import models.PlotInfo;
+import models.PlotMessenger;
+import models.PlotableTrajectory;
+import models.Shadow;
+/**
+ * http://www.math.vcu.edu/g1/journal/Journal6/17Griffin.pdf
+ * @author tonghua
+ *
+ */
+public class OnePointPerspectiveService {
+
+	/****************** attributes ***********************/
+	static Boolean initialied=false;
+	
+	static final double VANISHING_POINT_Z = 300.0;
+	static int screenWidth;
+	static int screenHeight;
+	/****************** attributes ends ******************/
+
+	/****************** constructors *********************/
+	// To do: Code here
+	/****************** constructors ends ****************/
+
+	/****************** private methods ******************/
+	
+
+	/****************** private methods ends *************/
+
+	/****************** properties ***********************/
+	public static double getVANISHING_POINT_Z(){
+		return VANISHING_POINT_Z;
+	}
+	/****************** properties ends ******************/
+
+	/****************** public methods *******************/
+	public static void initialize(){
+		if(initialied==false){
+			// do initializations.
+			initialied=true;
+		}
+	}
+	public static void setScreenSize(int width, int height){
+		screenWidth=width;
+		screenHeight=height;
+	}
+	/**
+	 * transform origin point to center bottom coordinate.
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public static Point Transform(int x, int y){
+		int newX = screenWidth/2+x;
+		int newY= screenHeight-y;
+		return new Point(newX, newY);
+	}
+	
+	public static double getPerspectiveYard(double size_Yard, double currentZ_Yard){
+		if(currentZ_Yard<VANISHING_POINT_Z){
+			return  (VANISHING_POINT_Z-currentZ_Yard)/VANISHING_POINT_Z*size_Yard;
+			//return  Math.pow((VANISHING_POINT_Z-currentZ_Yard)/VANISHING_POINT_Z,0.8)*size_Yard;
+		}
+		else{ // beyond vanishing point, cannot see it.
+			return 0.0;
+		}
+	}
+	/**
+	 * Calculate as z increases, object moves on Y towards center point of view.
+	 * @param z_yard
+	 * @return
+	 */
+	public static double getPerspectiveZYard(double z_yard){
+		double screenHeightYard = convertPixelToYard(screenHeight);
+		if(z_yard<VANISHING_POINT_Z){
+			//return screenHeightYard*z_yard/(VANISHING_POINT_Z*2);
+			return Math.pow(z_yard/VANISHING_POINT_Z, 0.35)*screenHeightYard/2;
+		}
+		else{
+			return screenHeightYard/2;
+		}
+	}
+	
+	public static int convertYardToPixel(double yards){
+		return (int)(yards * (screenHeight/8.0)); // 200 pixels/yard
+	}
+	
+	public static double convertPixelToYard(int pixels){
+		return pixels/(screenHeight/8.0);
+	}
+	public static PlotMessenger convert(APlotElement pe){
+		PlotInfo plotElementInfo = convertPlotElement(pe);
+		PlotInfo shadowInfo=null;
+		if(pe.getShadow()!=null){
+			shadowInfo= convertShadow(pe);
+		}
+		return new PlotMessenger(plotElementInfo, shadowInfo);
+	}
+	/***
+	 * convertPlotElement returns a standard drawing information,
+	 * need to shape it 45 degree to looks like shadow.
+	 * @param plotElementInfo
+	 * @return
+	 */
+	private static PlotInfo convertShadow(APlotElement parent){
+		Shadow shadow = parent.getShadow();
+		
+		PlotInfo shadowInfo= convertPlotElement(shadow);
+		// shrink shadow base on parent's height.
+		
+		double parentY_yard = parent.getPosition().getY();
+		double shrinkFactor = parent.getWidth()/(parentY_yard+ parent.getWidth());
+		shrinkFactor = Math.pow(shrinkFactor, 0.2); // non-linear shrink.
+		int imageWidth = shadowInfo.getImageWidth();
+		int imageHeight = shadowInfo.getImageHeight();
+		return new PlotInfo(shadowInfo.getImage(),
+				shadowInfo.getImageStartX(), // TODO: move start x and y a little bit to match parent when z = 0;
+				shadowInfo.getImageStartY()+(int)(imageHeight*(3.0/4)),
+				(int)(shadowInfo.getImageWidth() * shrinkFactor),
+				(int)(shadowInfo.getImageHeight()/2 * shrinkFactor));
+	}
+	private static PlotInfo convertPlotElement(APlotElement pe) {
+		BufferedImage image=null;
+		if(pe instanceof AAnimatedElement){
+			image = ImageService.getAnimatedImage((AAnimatedElement) pe);
+		}
+		else if(pe instanceof DistanceSign){
+			image = ImageService.getDistanceSign((DistanceSign) pe);
+		}
+		else if (pe instanceof BallStatusInfo){
+			image = ImageService.getBallStatusImage((BallStatusInfo)pe);
+		}
+		else if (pe instanceof PlotableTrajectory){
+			image = ImageService.getTrajectoryImage((PlotableTrajectory)pe);
+		}
+		else if (pe instanceof GreenView){
+			image = ImageService.getGreenViewImage((GreenView)pe);
+		}
+		else if (pe instanceof Shadow){
+			APlotElement parent = ((Shadow)pe).getParent();
+			image = ImageService.getShadowImage(parent.getClass());
+		}
+		else{
+			image = ImageService.getPlotElementImage(pe.getClass());
+		}
+		if (image ==null) return null; // don't draw when no images.
+		// convert to perspective view
+		// TODO: invert (0,0) point.
+
+		double xYard = pe.getPosition().x; // unit yard
+		double yYard=pe.getPosition().y; //unit yard
+		double zYard = pe.getPosition().z; // unit yard
+		// do perspective calculation.
+		double perspectiveWidth = getPerspectiveYard(pe.getWidth(), zYard);
+		double perspectiveHeight = getPerspectiveYard(pe.getHeight(), zYard);
+		double perspectiveDeltaY = getPerspectiveZYard(zYard); //Y direction correct factor.
+		// convert yard to screen pixel.
+		int imageWidth =convertYardToPixel(perspectiveWidth);
+		int imageHeight =convertYardToPixel(perspectiveHeight);
+		double perspectiveX = getPerspectiveYard(xYard, zYard);
+		double perspectiveY = getPerspectiveYard(yYard, zYard);
+		Point imageCenter= Transform(convertYardToPixel(perspectiveX), convertYardToPixel(perspectiveY+perspectiveDeltaY));
+		
+		int deltaY = convertYardToPixel(perspectiveDeltaY);
+		int imageStartX = imageCenter.x-imageWidth/2;
+		int imageStartY = imageCenter.y-imageHeight/2;
+		
+		PlotInfo plotInfo = new PlotInfo(image, imageStartX, imageStartY, imageWidth, imageHeight);
+		return plotInfo;
+	}
+
+	/****************** public methods ends **************/
+
+}

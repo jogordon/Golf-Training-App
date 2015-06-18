@@ -1,0 +1,236 @@
+package views;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+
+import javax.imageio.ImageIO;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+
+import net.miginfocom.swing.MigLayout;
+import controllers.ScenarioController;
+import controllers.ScenarioEnum;
+import controllers.WelcomeScreenController;
+import models.Logo;
+import models.MainMenuCommand;
+import service.ImageService;
+
+public class WelcomeScreen extends AAnimationScreen  {
+
+	/****************** attributes ******************/
+	JTextField txtUserName;
+	JPasswordField txtPassword;
+	JLabel lblLoginMessage;
+	JButton btnLogin;
+	JButton btncreateUser;
+	
+	JButton btnGaming;
+	JButton btnTraining;
+	JButton btnHistory;
+	JButton btnHighScore;
+	JButton btnAchievement;
+	JButton btnLogout;
+	JLabel lblWelcome;
+	
+	JPanel loginPanel;
+	JPanel menuPanel;
+	private static final long serialVersionUID = 944463859340986623L;
+
+	/****************** attributes ends *************/
+
+	/****************** constructors ******************/
+	public WelcomeScreen(WelcomeScreenController controller) {
+		super(controller);
+		
+		backPanel.setLayout(new BorderLayout());
+		backPanel.add(this.animationView, BorderLayout.CENTER);
+		frontPanel.setLayout(new MigLayout("","push[]push","5%[][grow]"));
+		// add logo
+		JLabel picLabel = new JLabel(new ImageIcon(ImageService.getPlotElementImage(Logo.class)));
+		picLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		frontPanel.add(picLabel,"wrap");
+		loginPanel= getLoginPanel();
+		menuPanel = getMenuPanel();		
+		frontPanel.add(loginPanel,"grow");
+	}
+
+	/****************** constructors ends *************/
+
+	/****************** private methods ******************/
+	private JPanel getMenuPanel() {
+		JPanel panel =new JPanel(new MigLayout("", "push[center]push", "push[][][][][][][]push"));
+		panel.setOpaque(false);
+		
+		// welcome label
+		lblWelcome = new JLabel();
+		panel.add(lblWelcome,"wrap");
+		
+		btnGaming=new JButton(scaleMenuIcon(ImageService.getButtonImage("game")));
+		
+		btnGaming.setBorderPainted(false);
+		btnGaming.setContentAreaFilled(false);
+		btnGaming.setAlignmentX(Component.CENTER_ALIGNMENT);
+		btnGaming.setAlignmentY(Component.CENTER_ALIGNMENT);
+		btnGaming.setActionCommand(MainMenuCommand.GAME.name()); // set actionCommand so controller could distinguish.
+		panel.add(btnGaming,"wrap");
+		
+		btnTraining=new JButton(scaleMenuIcon(ImageService.getButtonImage("train")));
+		btnTraining.setBorderPainted(false);
+		btnTraining.setContentAreaFilled(false);
+		btnTraining.setAlignmentX(Component.CENTER_ALIGNMENT);
+		btnGaming.setAlignmentY(Component.CENTER_ALIGNMENT);
+		btnTraining.setActionCommand(MainMenuCommand.TRAIN.name());
+		panel.add(btnTraining,"wrap");
+		
+		btnHistory=new JButton(scaleMenuIcon(ImageService.getButtonImage("history")));
+		btnHistory.setBorderPainted(false);
+		btnHistory.setContentAreaFilled(false);
+		btnHistory.setAlignmentX(Component.CENTER_ALIGNMENT);
+		btnGaming.setAlignmentY(Component.CENTER_ALIGNMENT);
+		btnHistory.setActionCommand(MainMenuCommand.HISTORY.name());
+		panel.add(btnHistory,"wrap");
+		
+		btnHighScore=new JButton(scaleMenuIcon(ImageService.getButtonImage("highScore")));
+		btnHighScore.setBorderPainted(false);
+		btnHighScore.setContentAreaFilled(false);
+		btnHighScore.setAlignmentX(Component.CENTER_ALIGNMENT);
+		btnGaming.setAlignmentY(Component.CENTER_ALIGNMENT);
+		btnHighScore.setActionCommand(MainMenuCommand.HIGHSCORE.name());
+		panel.add(btnHighScore,"wrap");
+		
+		btnAchievement=new JButton(scaleMenuIcon(ImageService.getButtonImage("achievements")));
+		btnAchievement.setBorderPainted(false);
+		btnAchievement.setContentAreaFilled(false);
+		btnAchievement.setAlignmentX(Component.CENTER_ALIGNMENT);
+		btnGaming.setAlignmentY(Component.CENTER_ALIGNMENT);
+		btnAchievement.setActionCommand(MainMenuCommand.ACHIEVEMENT.name());
+		panel.add(btnAchievement,"wrap");
+		
+		btnLogout=new JButton(scaleMenuIcon(ImageService.getButtonImage("logout")));
+		btnLogout.setBorderPainted(false);
+		btnLogout.setContentAreaFilled(false);
+		btnLogout.setAlignmentX(Component.CENTER_ALIGNMENT);
+		btnGaming.setAlignmentY(Component.CENTER_ALIGNMENT);
+		btnLogout.setActionCommand(MainMenuCommand.LOGOUT.name());
+		panel.add(btnLogout,"wrap");
+		return panel;
+	}
+	
+	private ImageIcon scaleMenuIcon(BufferedImage image){
+		ImageIcon icon= new ImageIcon(image);
+		Image img = icon.getImage() ;  
+		Image newimg = img.getScaledInstance( 302, 48,  java.awt.Image.SCALE_SMOOTH ) ;  
+		return new ImageIcon( newimg );
+	}
+	
+	private JPanel getLoginPanel() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new MigLayout("", "push[][]push", "[][][][][]"));
+		panel.setOpaque(false);
+	    
+		final int TEXT_COLUMNS = 10;
+
+		lblLoginMessage = new JLabel("Type user name and Password");
+		lblLoginMessage.setAlignmentX(CENTER_ALIGNMENT);
+		lblLoginMessage.setSize(100, 25);
+		lblLoginMessage.setOpaque(false);
+		panel.add(lblLoginMessage,"span,wrap");
+		
+		panel.add(new JLabel("User Name:"),"");
+		txtUserName = new JTextField("",TEXT_COLUMNS);
+		panel.add(txtUserName,"wrap");
+		
+		panel.add(new JLabel("Password:  "),"");
+		txtPassword = new JPasswordField(TEXT_COLUMNS);
+		txtPassword.setAlignmentX(Component.CENTER_ALIGNMENT);
+		txtPassword.setMaximumSize( txtPassword.getPreferredSize() );
+		panel.add(txtPassword, "wrap");
+		
+		btncreateUser = new JButton(new ImageIcon(ImageService.getButtonImage("createUser")));
+		btncreateUser.setBorderPainted(false);
+		btncreateUser.setContentAreaFilled(false);
+		btncreateUser.setAlignmentX(Component.CENTER_ALIGNMENT);
+		panel.add(btncreateUser, "span,wrap");
+		
+		btnLogin = new JButton(new ImageIcon(ImageService.getButtonImage("login")));
+		btnLogin.setBorderPainted(false);
+		btnLogin.setContentAreaFilled(false);
+		btnLogin.setAlignmentX(Component.CENTER_ALIGNMENT);
+		panel.add(btnLogin, "span");
+		return panel;
+	}
+
+	/****************** private methods ends *************/
+
+	/****************** properties ******************/
+	public String getUserName() {
+		return this.txtUserName.getText();
+	}
+
+	@SuppressWarnings("deprecation")
+	public String getPassword() {
+		return this.txtPassword.getText();
+	}
+	public void eraseTextFields() {
+		txtUserName.setText("");
+		txtPassword.setText("");
+		lblLoginMessage.setText("");
+	}
+	public void setLoginMessageLabel(String string) {
+		this.lblLoginMessage.setText(string);
+	}
+	
+	/****************** properties ends *************/
+
+	/****************** public methods ******************/
+	public void addMenuListeners(ActionListener listener){
+		this.btnGaming.addActionListener(listener);
+		this.btnTraining.addActionListener(listener);
+		this.btnHistory.addActionListener(listener);
+		this.btnHighScore.addActionListener(listener);
+		this.btnAchievement.addActionListener(listener);
+		this.btnLogout.addActionListener(listener);
+	}
+	public void addLoginListener(ActionListener listener) {
+		this.btnLogin.addActionListener(listener);
+	}
+	
+	public void addCreateUserListener(ActionListener listener) {
+		this.btncreateUser.addActionListener(listener);
+	}
+	public void switchToMenu(String userName){
+		if(loginPanel.getParent()!=null)// test if contains loginPanel
+			this.frontPanel.remove(loginPanel);
+		// set welcome user label
+		this.lblWelcome.setText("Welcome " + userName);
+		this.frontPanel.add(menuPanel, "grow");
+		this.revalidate();
+		this.repaint();
+	}
+	public void switchToLogin(){
+		if(menuPanel.getParent()!=null)// test if contains menuPanel
+			this.frontPanel.remove(menuPanel);
+		this.frontPanel.add(loginPanel, "grow");
+		this.revalidate();
+		this.repaint();
+	}
+
+	/****************** public methods ends *************/
+
+}

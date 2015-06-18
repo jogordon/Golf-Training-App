@@ -1,0 +1,248 @@
+package views;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import controllers.AchievementController;
+import models.AchievementRecord;
+import net.miginfocom.swing.MigLayout;
+import service.ImageService;
+
+public class AchievementScreen extends AScreen {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1624100335611736525L;
+	
+	/******************attributes***********************/
+	// To do: Code here
+	JLabel lblTitle;
+	static JButton twoHundred;
+	static JButton powerShot;
+	static JButton inOrbit;
+	static JButton steadyForm;
+	static JButton sharpShooter;
+	static JButton theRobot;
+	static JButton amateurChamp;
+	static JButton tourPro;
+	static JButton majorChamp;
+	/******************attributes ends******************/
+
+	/******************constructors*********************/
+	// To do: Code here
+	public AchievementScreen() {
+		super();
+		this.setLayout(new MigLayout("", "[15%][grow][15%]","[8%][grow][8%]"));
+		lblTitle= new AutoFitLabel("Achievements");
+		this.add(lblTitle, "cell 1 0, align center");
+		this.add(createBackPanel(), "cell 1 1, grow");
+		this.add(btnMainMenu, "cell 0 2");
+	}
+	/******************constructors ends****************/
+
+	/******************private methods******************/
+	// To do: Code here
+	private static JPanel createAchievementsPanel() {
+		JPanel aPanel = new JPanel();
+		//aPanel.setBackground(new Color(185, 185, 185));
+		aPanel.setOpaque(false);
+		aPanel.setLayout(new MigLayout("", "[20%]push[20%]push[20%]", "[33%][34%][33%]"));
+		twoHundred = new JButton(new ImageIcon("src/resources/twoHundred.png"));
+		twoHundred.setBorderPainted(false);
+		twoHundred.setContentAreaFilled(false);
+		powerShot = new JButton(new ImageIcon("src/resources/powerShot.png"));
+		powerShot.setBorderPainted(false);
+		powerShot.setContentAreaFilled(false);
+		inOrbit = new JButton(new ImageIcon("src/resources/inOrbit.png"));
+		inOrbit.setBorderPainted(false);
+		inOrbit.setContentAreaFilled(false);
+		steadyForm = new JButton(new ImageIcon("src/resources/steadyForm.png"));
+		steadyForm.setBorderPainted(false);
+		steadyForm.setContentAreaFilled(false);
+		sharpShooter = new JButton(new ImageIcon("src/resources/sharpShooter.png"));
+		sharpShooter.setBorderPainted(false);
+		sharpShooter.setContentAreaFilled(false);
+		theRobot = new JButton(new ImageIcon("src/resources/theRobot.png"));
+		theRobot.setBorderPainted(false);
+		theRobot.setContentAreaFilled(false);
+		amateurChamp = new JButton(new ImageIcon("src/resources/amateurChamp.png"));
+		amateurChamp.setBorderPainted(false);
+		amateurChamp.setContentAreaFilled(false);
+		tourPro = new JButton(new ImageIcon("src/resources/tourPro.png"));
+		tourPro.setBorderPainted(false);
+		tourPro.setContentAreaFilled(false);
+		majorChamp = new JButton(new ImageIcon("src/resources/majorChamp.png"));
+		majorChamp.setBorderPainted(false);
+		majorChamp.setContentAreaFilled(false);
+		aPanel.add(twoHundred, "cell 0 0");
+		aPanel.add(powerShot, "cell 1 0");
+		aPanel.add(inOrbit, "cell 2 0");
+		aPanel.add(steadyForm, "cell 0 1");
+		aPanel.add(sharpShooter, "cell 1 1");
+		aPanel.add(theRobot, "cell 2 1");
+		aPanel.add(amateurChamp, "cell 0 2");
+		aPanel.add(tourPro, "cell 1 2");
+		aPanel.add(majorChamp, "cell 2 2");
+		
+		return aPanel;
+	}
+	private BackPanel createBackPanel(){
+		BackPanel backPanel = new BackPanel();
+		backPanel.add(createAchievementsPanel());
+		return backPanel;
+	}
+	
+	/******************private methods ends*************/
+
+	/******************properties***********************/
+	// To do: setters and getters code here
+	/******************properties ends******************/
+
+	/******************public methods*******************/
+	// To do: Code here
+	public void addListener(ActionListener listener) {
+
+	}
+	
+	public void addReturnMainMenuListener(ActionListener listener){
+		this.btnMainMenu.addActionListener(listener);
+	}
+	public void setAchievment(AchievementRecord record){
+		
+		if(record.getTwoHundred()){
+			twoHundred.setEnabled(true);
+			twoHundred.setToolTipText("<HTML>Achievement: Two Hundred <br>"
+					+ "Status: EARNED! <br>"
+					+ "Requirements: Hit a shot 200+ yards in Training Mode.</HTML>");
+		}
+		else {
+			twoHundred.setEnabled(false);
+			twoHundred.setToolTipText("<HTML>Achievement: Two Hundred <br>"
+					+ "Status: Unearned <br>"
+					+ "Requirements: Hit a shot 200+ yards in Training Mode.</HTML>");
+			}
+		
+		if(record.getPowerShot()){
+			powerShot.setEnabled(true);	
+			powerShot.setToolTipText("<HTML>Achievement: Power Shot <br>"
+					+ "Status: EARNED! <br>"
+					+ "Requirements: Hit a shot 225+ yards in Training Mode.</HTML>");
+		}
+		else {
+			powerShot.setEnabled(false);
+			powerShot.setToolTipText("<HTML>Achievement: Power Shot <br>"
+					+ "Status: Unearned <br>"
+					+ "Requirements: Hit a shot 225+ yards in Training Mode.</HTML>");
+			}
+		
+		if(record.getInOrbit()){
+			inOrbit.setEnabled(true);	
+			inOrbit.setToolTipText("<HTML>Achievement: In Orbit <br>"
+					+ "Status: EARNED! <br>"
+					+ "Requirements: Hit a shot 250+ yards in Training Mode.</HTML>");
+		}
+		else {
+			inOrbit.setEnabled(false);
+			inOrbit.setToolTipText("<HTML>Achievement: In Orbit <br>"
+					+ "Status: Unearned <br>"
+					+ "Requirements: Hit a shot 250+ yards in Training Mode.</HTML>");
+			}
+		
+		if(record.getSteadyForm()){
+			steadyForm.setEnabled(true);
+			steadyForm.setToolTipText("<HTML>Achievement: Steady Form <br>"
+					+ "Status: EARNED! <br>"
+					+ "Requirements: Hit five shots in a row within 1 <br>"
+					+ "degree of straight in Training Mode.</HTML>");
+		}
+		else {
+			steadyForm.setEnabled(false);
+			steadyForm.setToolTipText("<HTML>Achievement: Steady Form <br>"
+					+ "Status: Unearned <br>"
+					+ "Requirements: Hit five shots in a row within 1 <br>"
+					+ "degree of straight in Training Mode.</HTML>");
+			}
+		
+		if(record.getSharpShooter()){
+			sharpShooter.setEnabled(true);
+			sharpShooter.setToolTipText("<HTML>Achievement: Sharpshooter <br>"
+					+ "Status: EARNED! <br>"
+					+ "Requirements: Hit twenty shots in a row within 1 <br>"
+					+ "degree of straight in Training Mode.</HTML>");
+		}
+		else {
+			sharpShooter.setEnabled(false);
+			sharpShooter.setToolTipText("<HTML>Achievement: Sharpshooter <br>"
+					+ "Status: Unearned <br>"
+					+ "Requirements: Hit twenty shots in a row within 1 <br>"
+					+ "degree of straight in Training Mode.</HTML>");
+		}
+		
+		if(record.getTheRobot()){
+			theRobot.setEnabled(true);
+			theRobot.setToolTipText("<HTML>Achievement: The Robot <br>"
+					+ "Status: EARNED! <br>"
+					+ "Requirements: Hit fifty shots in a row within 1 <br>"
+					+ "degree of straight in Training Mode.</HTML>");
+		}
+		else {
+			theRobot.setEnabled(false);
+			theRobot.setToolTipText("<HTML>Achievement: The Robot <br>"
+					+ "Status: Unearned <br>"
+					+ "Requirements: Hit fifty shots in a row within 1 <br>"
+					+ "degree of straight in Training Mode.</HTML>");
+		}
+		
+		if(record.getAmateurChamp()){
+			amateurChamp.setEnabled(true);	
+			amateurChamp.setToolTipText("<HTML>Achievement: AmateurChamp <br>"
+					+ "Status: EARNED! <br>"
+					+ "Requirements: Score 10,000+ points in game mode.</HTML>");
+		}
+		else {
+			amateurChamp.setEnabled(false);
+			amateurChamp.setToolTipText("<HTML>Achievement: AmateurChamp <br>"
+					+ "Status: Unearned <br>"
+					+ "Requirements: Score 10,000+ points in game mode.</HTML>");
+			}
+		
+		if(record.getTourPro()){
+			tourPro.setEnabled(true);	
+			tourPro.setToolTipText("<HTML>Achievement: Tour Pro <br>"
+					+ "Status: EARNED! <br>"
+					+ "Requirements: Score 15,000+ points in game mode.</HTML>");
+		}
+		else {
+			tourPro.setEnabled(false);
+			tourPro.setToolTipText("<HTML>Achievement: Tour Pro <br>"
+					+ "Status: Unearned <br>"
+					+ "Requirements: Score 15,000+ points in game mode.</HTML>");
+		}
+		
+		if(record.getMajorChamp()){
+			majorChamp.setEnabled(true);	
+			majorChamp.setToolTipText("<HTML>Achievement: Major Champ <br>"
+					+ "Status: EARNED! <br>"
+					+ "Requirements: Score 20,000+ points in game mode.</HTML>");
+		}
+		else {
+			majorChamp.setEnabled(false);
+			majorChamp.setToolTipText("<HTML>Achievement: Major Champ <br>"
+					+ "Status: Unearned <br>"
+					+ "Requirements: Score 20,000+ points in game mode.</HTML>");
+		}
+		
+	}
+	/******************public methods ends**************/
+
+
+}

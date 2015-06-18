@@ -1,0 +1,58 @@
+package controllers;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import models.AchievementRecord;
+import models.ScreenEnum;
+import service.Database;
+import views.AchievementScreen;
+
+
+public class AchievementController extends AScreenController {
+	private AchievementRecord record;
+	
+	/****************** attributes ***********************/
+	// To do: Code here
+	/****************** attributes ends ******************/
+
+	/****************** constructors *********************/
+	// To do: Code here
+	public AchievementController(IRopeItController ropeitController) {
+		super(ropeitController);
+		// TODO Auto-generated constructor stub
+		this.screen = new AchievementScreen();
+		setupReturnMainMenuListener();
+		//this.setupListener();
+	}
+	/****************** constructors ends ****************/
+
+	/****************** private methods ******************/
+	
+	
+	private void setAchievement() {
+		
+	}
+	
+	/****************** private methods ends *************/
+
+	/****************** properties ***********************/
+	// To do: setters and getters code here
+	
+	/****************** properties ends ******************/
+
+	/****************** public methods *******************/
+	public AchievementRecord getAchievements(){
+		return record;
+	}
+	// To do: Code here
+	//get scores and set achievements to display in view
+	public void displayAchievement() {
+		Database db = Database.getInstance();
+		record = db.getAchievements(ropeitController.getCurrentUser());
+		AchievementScreen screen = (AchievementScreen) this.screen;
+		screen.setAchievment(record);
+	}
+	/****************** public methods ends **************/
+
+}

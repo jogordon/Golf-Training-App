@@ -1,0 +1,184 @@
+package service;
+import java.util.ArrayList;
+import java.util.Random;
+import models.Position;
+
+
+public class ShotSimulatorService {
+
+	private static ShotSimulatorService instance = null;
+	
+	static final int NEQ  = 4;
+	static final double gravity = 32.174; 		// ft per sec
+	static final double gConversion = 32.174; 	// lbm ft / lbf sec^2
+	static final double pAir = 53.34; 			// ft lbf / lbm degR
+	static final double diameter = 0.14; 		// ft
+	static final double area = 0.0153938; 		// ft^2
+	static final double weight = 0.10125; 		// lbf 
+	static final double pressure = 2116.224; 	// lb / ft^2
+	static final double temp = 540; 			// deg R
+	static final double rho = 0.0734708; 			// lbm / ft^3
+	static final double startAltitude = 0; 		// ft
+	static final double windSpeed = 0; 			// ft / sec
+	static final double dT = 0.1;
+	static final double delOut = 0.1;
+	static final int iPrintSteps = 2;
+	static double time;
+	
+	public static ShotSimulatorService getInstance() {
+		if (instance == null) {
+			instance = new ShotSimulatorService();
+	    }
+	    return instance;
+	}
+	
+	public static ArrayList<Position> getRandomShot(){
+		Random r = new Random();
+		double velocity = 90 + (180 - 90) * r.nextDouble();
+		double vertAngle = 7 + (20 - 7) * r.nextDouble();
+		double latAngle = -10 + 20 * r.nextDouble();
+		double spinRate = 2000 + (10000 - 2000) * r.nextDouble();
+		return calcBallFlight(velocity, vertAngle, latAngle, spinRate);	
+	}
+	
+	public static ArrayList<Position> calcBallFlight(double velocity, double vertAngle, double horizontalAngle, double spinRate) {
+		double[] Y = {velocity * 88 / 60, vertAngle * Math.PI / 180, startAltitude, 0};
+		double[] YY = new double[NEQ];
+		double[] K1 = new double[NEQ];
+		double[] K2 = new double[NEQ];
+		double[] K3 = new double[NEQ];
+		double[] K4 = new double[NEQ];
+		double[] dydx = new double[NEQ];
+		//double[][] results = new double[600][6];
+		ArrayList<Position> results = new ArrayList<Position>();
+		double[] ySave = new double[NEQ];
+		time = 0;
+		spinRate = spinRate / 60;
+		double spinVel = Math.PI * diameter * spinRate;
+		int iPrint = 0;
+		//int row = 0;
+		setRow(results, Y, horizontalAngle);
+		double t2 = 0, t3 = 0, h2 = 0, h3 = 0, tSave = 0;
+		do {
+			if(Y[1] < 0) { 				// if flight angle is negative
+				t3 = t2;
+				t2 = time;
+				h3 = h2;
+				h2 = Y[2];
+				tSave = time;
+				for(int j = 0; j < NEQ; j++) {
+					ySave[j] = Y[j];
+				}
+			}
+			RK4(spinVel, dT, Y, YY, K1, K2, K3, K4, dydx);
+			iPrint++;
+			if(iPrint == iPrintSteps && Y[2] > 0) {
+				//row++;
+				setRow(results, Y, horizontalAngle);
+				iPrint = 0;
+			}
+		} while(Y[1] >= 0 || Y[2] >= 0);
+		double t1 = time, h1 = Y[2]; 
+		double d = (t3 - t2)*(Math.pow(t2, 2) - Math.pow(t1, 2)) - (t2 - t1) * 
+				(Math.pow(t3, 2) - Math.pow(t2, 2));
+		double c1 = ((h3 - h2) * (Math.pow(t2, 2) - Math.pow(t1, 2)) - (h2 - h1) *
+				(Math.pow(t3, 2) - Math.pow(t2, 2))) / d;
+		double c2 = ((h2 - h1) * (t3 - t2) - (h3 - h2) * (t2 - t1)) / d;
+		double c0 = Y[2] - c1 * time - c2 * Math.pow(time, 2);
+		time = tSave;
+		double dtImpact = -2 * c0 / (c1 - Math.sqrt(Math.pow(c1, 2) - 4*c0 * c2)) - time;
+		for(int k = 0; k < NEQ; k++) {
+			Y[k] = ySave[k];
+		}
+		RK4(spinVel, dtImpact, Y, YY, K1, K2, K3, K4, dydx);
+		Y[2] = 0;
+		setRow(results, Y, horizontalAngle);
+		bounce(results, Y, horizontalAngle);
+		return results;
+	}
+	private static void setRow(ArrayList<Position> results, double[] Y, double latAngle) {
+		Position pos = new Position(Y[3] * Math.tan(latAngle * Math.PI / 180),
+				Y[2] / 3, Y[3] / 3);
+		results.add(pos);
+		/*
+		results[row][0] = Y[3] / 3;
+		results[row][1] = Y[2] / 3;
+		results[row][2] = Y[0] * 60 / 88;
+		results[row][3] = Y[1] * 180 / Math.PI;
+		results[row][4] = time;	
+		results[row][5] = Y[3] * Math.tan(latAngle * Math.PI / 180);*/
+	}
+	private static void RK4(double spinVel, double H, double[] Y, double[] YY, 
+			double[]K1, double[] K2, double[] K3, double[] K4, double[] dydx) {
+		deriv(spinVel, Y, dydx);
+		for(int j = 0; j < NEQ; j++) {
+			K1[j] = H * dydx[j];
+			YY[j] = Y[j] + 0.5 * K1[j];
+		}
+		deriv(spinVel, YY, dydx);
+		for(int j = 0; j < NEQ; j++) {
+			K2[j] = H * dydx[j];
+			YY[j] = Y[j] + 0.5 * K2[j];
+		}
+		deriv(spinVel, YY, dydx);
+		for(int j = 0; j < NEQ; j++) {
+			K3[j] = H * dydx[j];
+			YY[j] = Y[j] + 0.5 * K3[j];
+		}
+		deriv(spinVel, YY, dydx);
+		for(int j = 0; j < NEQ; j++) {
+			K4[j] = H * dydx[j];
+			Y[j] = Y[j] + (K1[j] + 2 * (K2[j] + K3[j]) + K4[j]) / 6;
+		}
+		time = time + H;
+	}
+	private static void deriv(double spinVel, double[] Y, double[] dydx) {
+		double sinAlpha = Math.sin(Y[1]);
+		double cosAlpha = Math.cos(Y[1]);
+		double v = Y[0];
+		double vel = v - windSpeed * cosAlpha;
+		double rsr = spinVel / vel;
+		double dynamicP = q(rho, vel);
+		double fDrag = cD(rsr) * dynamicP * area;
+		double fLift = cL(rsr) * dynamicP * area;
+		dydx[0] = -gravity * (fDrag / weight + sinAlpha); 
+		dydx[1] = gravity * (fLift / weight - cosAlpha) / v;
+		dydx[2] = v * sinAlpha;
+		dydx[3] = v * cosAlpha;
+	}
+	private static double q(double rho, double vel) {
+		return 0.5 * rho * vel * vel / gConversion;
+	}
+	private static double cL(double rsr) {
+		return 0.06938589 + rsr * 0.9879173;
+	}
+	private static double cD(double rsr) {
+		return 0.19950284 + rsr * (0.18896487 + 1.46503862 * rsr);
+	}
+	private static void bounce(ArrayList<Position> results, double[] Y, double latAngle) {
+		//System.out.println("Velocity: " + Y[0] + " Height: " + Y[2]);
+		boolean fall = false;
+		//double velocity = Y[0]*delOut;
+		while(Y[0] > 5 || Y[2] > 0) {
+			if(Y[2] == 0) {
+				//System.out.println("Y is zero");
+				Y[0] *= 0.6;
+				fall = false;
+			}
+			if(Y[0] == 0) {
+				fall = true;
+			}
+			if(fall) {
+				Y[0] += (gravity *delOut);
+				Y[2] = Math.max(0, Y[2] - Y[0]*delOut);
+			}
+			else {
+				Y[0] = Math.max(0, Y[0] - gravity *delOut);
+				Y[2] += Y[0]*delOut;
+			}
+			Y[3] += Y[0]*delOut;
+				setRow(results, Y, latAngle);
+			//System.out.println("Velocity: " + Y[0] + " Height: " + Y[2]);
+		}
+	}
+}

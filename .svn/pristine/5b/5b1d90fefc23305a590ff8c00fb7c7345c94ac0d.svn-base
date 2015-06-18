@@ -1,0 +1,74 @@
+package graph.helper;
+
+import java.util.ArrayList;
+import java.util.Date;
+
+import models.ClubEnum;
+import models.TrainingRecord;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.category.DefaultCategoryDataset;
+
+public class DistanceGraph extends AbstractGraph {
+	
+
+	/******************attributes***********************/
+	// To do: Code here
+	
+	/******************attributes ends******************/
+	
+	/******************constructors*********************/
+	// To do: Code here
+	public DistanceGraph() {
+		super(null, null, null);
+	}
+	/******************constructors ends****************/
+	
+	/******************private methods******************/
+
+	/******************private methods ends*************/
+	
+	/******************properties***********************/
+	// To do: setters and getters code here
+	/******************properties ends******************/
+	
+	/******************public methods*******************/
+	//create the chart to be added to the chartpanel
+	//create a method getPanel that actually generates the chart
+	//in the view, get the panel with the created chart and then render it on the view.
+
+	public static ArrayList<TrainingRecord> getTrainingRecords(ClubEnum iron, Date start, Date end) {
+		ArrayList<TrainingRecord> records = new ArrayList<TrainingRecord>();
+		for (TrainingRecord r : traindemo) {
+			if(iron==null){
+				if(r.getDate().after(start) && r.getDate().before(end)) {
+					records.add(r);
+				}
+			}
+			else{
+				if (r.getIron()==iron && r.getDate().after(start) && r.getDate().before(end)) {
+					records.add(r);
+				}
+			}
+			
+		} 
+		
+		return records;
+	}
+	
+	public static ArrayList<TrainingRecord> getTrainingRecords(ClubEnum iron) {
+		return getTrainingRecords(iron, new Date(0,0,0), new Date(9999,9,9));
+	}
+	
+	public static ArrayList<TrainingRecord> getTrainingRecords() {  
+		return getTrainingRecords(null, new Date(0,0,0), new Date(9999,9,9));
+	}
+	
+
+	/******************public methods ends**************/
+
+	
+	
+}

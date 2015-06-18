@@ -1,0 +1,37 @@
+package TestsPackage;
+
+import static org.junit.Assert.*;
+import models.Ball;
+import models.Cloud;
+import models.Green;
+import models.Hole;
+import models.Position;
+import models.Tree;
+
+import org.junit.Test;
+
+public class APlotElementTest {
+
+	@Test
+	public void test() {
+		Position point = new Position(1,1,1);
+		Position point2 = new Position(2,2,2);
+		Tree t1 = new Tree(point,5,6);
+		Tree t2 = new Tree(point,7,8);
+		Green g1 = new Green(point,7,8);
+		Green g2 = new Green(point,7,8);
+		Hole h1 = new Hole(point2,9,9);
+		Hole h2 = new Hole(point,9,9);
+		Cloud c1 = new Cloud(point, 8, 10, 2.0,"left");
+		Cloud c2 = new Cloud(point, 8, 10, 2.0,"right");
+		assertEquals(t1,t1);
+		assertNotEquals(t1,t2);
+		assertNotEquals(g1,t2);
+		assertNotEquals(g1,g2);
+		assertNotEquals(h1,h2);
+		assertNotEquals(c1,c2);
+		
+		
+	}
+
+}

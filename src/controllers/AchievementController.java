@@ -1,0 +1,72 @@
+package controllers;
+
+import models.AchievementRecord;
+import models.Ball;
+import models.ClubEnum;
+import models.WelcomeScenario;
+import service.Database;
+import views.AchievementScreen;
+
+public class AchievementController extends AAnimationScreenController {
+	private AchievementRecord record;
+	
+	/****************** attributes ***********************/
+	// To do: Code here
+	/****************** attributes ends ******************/
+
+	/****************** constructors *********************/
+	// To do: Code here
+	public AchievementController(IRopeItController ropeitController) {
+		super(ropeitController);
+		// TODO Auto-generated constructor stub
+		this.scenario=new WelcomeScenario();
+		this.screen = new AchievementScreen(this);
+		setupReturnMainMenuListener();
+		//this.setupListener();
+	}
+	/****************** constructors ends ****************/
+
+	/****************** private methods ******************/
+	
+	/****************** private methods ends *************/
+
+	/****************** properties ***********************/
+	// To do: setters and getters code here
+	
+	/****************** properties ends ******************/
+
+	/****************** public methods *******************/
+	//get scores and set achievements to display in view
+	public void displayAchievement() {
+		Database db = Database.getInstance();
+		record = db.getAchievements(ropeitController.getCurrentUser());
+		AchievementScreen screen = (AchievementScreen) this.screen;
+		screen.setAchievment(record);
+	}
+	/****************** public methods ends **************/
+
+	@Override
+	public void ballLanded(Ball ball) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void hitBall() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void replay() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public ClubEnum switchClub() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

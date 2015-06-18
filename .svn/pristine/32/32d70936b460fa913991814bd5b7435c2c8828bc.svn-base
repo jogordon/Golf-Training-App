@@ -1,0 +1,125 @@
+package views;
+
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Random;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.border.Border;
+import javax.swing.text.StyledEditorKit.BoldAction;
+
+import controllers.ScenarioController;
+import controllers.ScenarioEnum;
+import controllers.TrainingController;
+import service.JTableColumnRender;
+import service.ShotSimulatorService;
+import models.ClubEnum;
+import models.LastShotTableModel;
+import models.PlayMode;
+import models.Position;
+import models.SessionTableModel;
+import models.Trajectory;
+import net.miginfocom.swing.MigLayout;
+
+public class TrainingScreen extends AAnimationScreen {
+
+	/****************** attributes ******************/
+	private static final long serialVersionUID = 5844727341056620296L;
+	JLabel lblTitle;
+	JButton btnHitBall;
+	SessionTableModel sessionTableModel;
+	LastShotTableModel lastShotTableModel;
+	/****************** attributes ends *************/
+
+	/****************** constructors ******************/
+	public TrainingScreen(TrainingController controller) {
+		super(controller);
+		backPanel.setLayout(new BorderLayout());
+		backPanel.add(this.animationView,BorderLayout.CENTER);
+		frontPanel.setLayout(new BorderLayout());
+		frontPanel.add(createFrontPanel(),BorderLayout.CENTER);
+		
+	}
+	/****************** constructors ends *************/
+
+	/****************** private methods ******************/
+	private JPanel createFrontPanel(){
+		JPanel frontPanel = new JPanel(new MigLayout("", "", "[]push[]")); // col: 0, row 2, push: empty between rows.
+		frontPanel.setOpaque(false); // set to transparent background
+		
+		JPanel topSubPanel = new JPanel(new MigLayout("","20[]push[]20",""));// two columns, 1 row
+		topSubPanel.setOpaque(false);
+		topSubPanel.add(createSessionAveTable(),""); // create session table
+		topSubPanel.add(createLastShotPanel(),"");
+		frontPanel.add(topSubPanel, "grow, pushx, wrap"); // expend to fill top. wrap: end of this row in front panel
+		
+		JPanel bottomSubPanel = new JPanel(new MigLayout("","[]push[]push[]",""));
+		frontPanel.add(bottomSubPanel ,"grow, pushx");
+		
+		bottomSubPanel.setOpaque(false);
+		bottomSubPanel.add(this.btnMainMenu,""); // don't need to create main menu button.
+		bottomSubPanel.add(createHitBallButton());
+		bottomSubPanel.add(this.getRelayButton(),"");
+		return frontPanel;
+	}
+	
+	private JPanel createSessionAveTable(){
+		this.sessionTableModel=new SessionTableModel();
+		this.sessionTableModel.addRow(100, 0);
+		JTable sessionTable = new JTable(this.sessionTableModel);
+		JPanel panel = new JPanel(new MigLayout("","","[][]"));
+		panel.setOpaque(false);// transparent.
+		JLabel tableTitle = new JLabel("Session Average");
+		panel.add(tableTitle,"wrap,push,grow");
+		panel.add(sessionTable, "span");
+		return panel;
+	}
+	
+	private JPanel createLastShotPanel(){
+		this.lastShotTableModel=new LastShotTableModel();
+		this.lastShotTableModel.show(0, 0); //default 0
+		JTable sessionTable = new JTable(this.lastShotTableModel);
+		JPanel panel = new JPanel(new MigLayout("","","[][]"));
+		panel.setOpaque(false);// transparent.
+		JLabel tableTitle = new JLabel("Last Shot");
+		panel.add(tableTitle,"wrap,push,grow");
+		panel.add(sessionTable, "span");
+		return panel;
+	}
+	
+	private JButton createHitBallButton(){
+		btnHitBall= new JButton("Hit");
+		btnHitBall.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				getController().hitBall();
+			}
+		});
+		return btnHitBall;
+	}
+	
+	
+	/****************** private methods ends *************/
+
+	/****************** properties ******************/
+	
+	/****************** properties ends *************/
+
+	/****************** public methods ******************/
+	public void setHitBallButtonListener(ActionListener l){
+		btnHitBall.addActionListener(l);
+	}
+	public void showLastShot(double distance, double maxHeight){
+		this.lastShotTableModel.show(distance, maxHeight);
+	}
+	
+	/****************** public methods ends *************/
+}

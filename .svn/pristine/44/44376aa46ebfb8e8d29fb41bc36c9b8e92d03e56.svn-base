@@ -1,0 +1,285 @@
+package views;
+
+import graph.helper.ChartDataService;
+import graph.helper.DistanceGraph;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+
+import javax.swing.*;
+
+import models.ClubEnum;
+import models.TrainingRecord;
+import models.User;
+import net.miginfocom.swing.MigLayout;
+import net.sourceforge.jdatepicker.impl.JDatePanelImpl;
+import net.sourceforge.jdatepicker.impl.JDatePickerImpl;
+import net.sourceforge.jdatepicker.impl.UtilDateModel;
+
+import org.jfree.*;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.data.*;
+
+import service.Database;
+import service.ImageService;
+
+import com.sun.rowset.internal.InsertRow;
+//import com.sun.xml.internal.messaging.saaj.soap.JpegDataContentHandler;
+
+
+
+
+
+
+
+import controllers.AAnimationScreenController;
+import controllers.HistoryController;
+
+public class HistoryScreen extends AAnimationScreen {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8430117659869471731L;
+
+	/****************** attributes ***********************/
+	JPanel HeaderPanel; // header panel includes title label and a button to
+						// return to main menu
+	JTabbedPane chartTabbedPane;
+	JLabel title;
+	
+	final String IRON_ALL = "All";
+	final String IRON_5 = "5-Iron";
+	final String IRON_9 = "9-Iron";
+	JComboBox<String> cbIron;
+	JComboBox<String> cbStartDate;
+	JComboBox<String> cbEndDate;
+	
+	ClubEnum cIron=null;
+	Date startDate=null;
+	Date endDate=null;
+
+	JFreeChart chart;
+	
+	static final String ROW_KEY = "Values";
+
+	Format formatter = new SimpleDateFormat("YYYY-MM-dd");
+	
+	DefaultCategoryDataset distanceBarChartModel = new DefaultCategoryDataset();
+	XYSeriesCollection distributionChartModel = new XYSeriesCollection();
+
+	HistoryController controller;
+
+	/****************** attributes ends ******************/
+
+	/****************** constructors *********************/
+	// To do: Code here
+	public HistoryScreen(AAnimationScreenController controller) {
+		super(controller);
+		this.controller=(HistoryController)controller;
+		backPanel.setLayout(new BorderLayout());
+		backPanel.add(this.animationView, BorderLayout.CENTER);
+		
+		this.frontPanel.setLayout(new MigLayout("", "8%[grow][grow]8%","5%[][][grow][]8%"));
+		JLabel lblHeader = new JLabel("History");
+		lblHeader.setFont(new Font("Arial", Font.BOLD, 50));
+		lblHeader.setForeground(Color.green);
+		this.frontPanel.add(lblHeader,"center,span,wrap");
+		this.frontPanel.add(createOptionPanel(), "center, span, wrap");
+		this.frontPanel.add(createDistributionChart(), "growy");
+		this.frontPanel.add(createDistanceBarChart(), "growy,wrap");
+		this.frontPanel.add(btnMainMenu, "align left");
+		
+	}
+
+	/****************** constructors ends ****************/
+
+	/****************** private methods ******************/
+	
+	private JPanel createOptionPanel() {
+		JPanel settingsPanel = new JPanel();
+		this.cbIron= new JComboBox<String>();
+		this.cbIron.addItem(IRON_ALL);
+		this.cbIron.addItem(IRON_5);
+		this.cbIron.addItem(IRON_9);
+		cbIron.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String chosenIron = (String) cbIron.getSelectedItem();
+				controller.testRetrieveData(controller.getUser().getName(), startDate, endDate, chosenIron);
+			}
+		});
+		
+		settingsPanel.add(this.cbIron);
+		this.cbStartDate=new JComboBox<String>();
+		settingsPanel.add(this.cbStartDate);
+		
+		this.cbEndDate=new JComboBox<String>();
+		settingsPanel.add(this.cbEndDate);
+		settingsPanel.setOpaque(false);
+		return settingsPanel;
+	}
+
+	private void changeIron() {
+		cbIron.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				String chosenIron = (String) cbIron.getSelectedItem();
+//				controller.displayData(controller.getUser().getName(), startDate, endDate, chosenIron);
+				controller.testRetrieveData(controller.getUser().getName(), startDate, endDate, chosenIron);
+			}
+		});
+	}
+	
+	private void changeSDate() {
+		cbStartDate.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.out.println(cbStartDate.getSelectedItem());
+			}
+			
+		});
+	}
+	
+	private void changeEDate() {
+		cbEndDate.addActionListener(
+			new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					System.out.println(cbEndDate.getSelectedItem());
+				}
+				
+			});
+	}
+	
+	
+	private ChartPanel createDistanceBarChart() {
+		if (distanceBarChartModel == null) {
+			distanceBarChartModel = new DefaultCategoryDataset();
+		}
+		//default chart data
+
+		distanceBarChartModel = ChartDataService.generateDistData();
+		//create bar chart
+		JFreeChart barChart = ChartFactory.createBarChart("Distance", "Shot",
+		            "Value", distanceBarChartModel, PlotOrientation.VERTICAL, true, true, false);
+		barChart.getPlot().setBackgroundPaint(Color.white);
+		barChart.setBackgroundPaint(Color.white);
+		ChartPanel chpanel = new ChartPanel(barChart);
+		chpanel.setPreferredSize(new Dimension(100, 100));
+		chpanel.setMaximumSize(new Dimension(100,100));
+		return new ChartPanel(barChart);
+	}
+	
+	private ChartPanel createDistributionChart() {
+		XYSeries series = new XYSeries("Scatter");
+		if (distributionChartModel == null) {
+			distributionChartModel = new XYSeriesCollection();
+		}
+		//default chart data
+		ArrayList<TrainingRecord> records = DistanceGraph.traindemo;
+		
+		for (TrainingRecord r : records) {
+			series.add(r.getxLanding(), r.getzLanding());
+			
+		}
+		distributionChartModel.addSeries(series);
+		
+		JFreeChart distribChart = ChartFactory.createScatterPlot("Shot Distribution", "Lateral Distance", "Distance", distributionChartModel, PlotOrientation.VERTICAL, true, true, false);
+		XYPlot xyplot = (XYPlot) distribChart.getPlot();
+		xyplot.setDomainCrosshairVisible(true);
+		xyplot.setBackgroundPaint(Color.white);
+		ChartPanel chpanel = new ChartPanel(distribChart);
+		chpanel.setPreferredSize(new Dimension(100,100));
+		chpanel.setMaximumSize(new Dimension(100,100));
+		return new ChartPanel(distribChart);
+	}
+	
+//	private ChartPanel createPolarAreaChart() {
+//		
+//	}
+
+	/****************** private methods ends *************/
+
+	/****************** properties ***********************/
+	// To do: setters and getters code here
+	/****************** properties ends ******************/
+
+	/****************** public methods *******************/
+
+	public void addReturnMainMenuListener(ActionListener listener) {
+		this.btnMainMenu.addActionListener(listener);
+	}
+	
+	//updating the model data set
+	public void setData(ArrayList<TrainingRecord> records){
+		this.distanceBarChartModel.clear();
+		this.distributionChartModel.removeAllSeries();
+		XYSeries s = new XYSeries("Scatter");
+		for(TrainingRecord record: records){
+			if (record.getIron() == ClubEnum.IRON5) {
+				distanceBarChartModel.setValue(record.getzLanding(), record.getIron().name(), record.getDate());
+				s.add(record.getxLanding(), record.getzLanding());
+			}
+			else if (record.getIron() == ClubEnum.IRON9) {
+				distanceBarChartModel.setValue(record.getzLanding(), record.getIron().name(), record.getDate());
+				s.add(record.getxLanding(), record.getzLanding());
+			}
+			else {
+				distanceBarChartModel.setValue(record.getzLanding(), record.getIron().name(), record.getDate());
+				s.add(record.getxLanding(), record.getzLanding());
+			}
+			
+			System.out.println(record.getzLanding() + " " + record.getDate().toString() + " " + record.getIron().toString());
+		}
+		distributionChartModel.addSeries(s);
+	}
+	
+	
+	public void populateDates(ArrayList<Date> dates) {
+		cbStartDate.removeAllItems();
+		cbEndDate.removeAllItems();
+		for (Date d : dates) {
+			formatter.format(d);
+			System.out.println(d.getClass());
+			System.out.println(formatter.format(d).getClass());
+			cbStartDate.addItem(formatter.format(d));
+			cbEndDate.addItem(formatter.format(d));
+
+		}
+		
+	}
+
+	/****************** public methods ends **************/
+
+}

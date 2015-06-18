@@ -1,0 +1,65 @@
+package models;
+
+public class Cloud extends APlotElement {
+
+	/****************** attributes ***********************/
+
+	double speed;
+	String direction;
+	/****************** attributes ends ******************/
+
+	/****************** constructors *********************/
+
+	public Cloud(Position position, int height, int width, double speed,
+			String direction) {
+		this.position = position;
+		this.height = height;
+		this.width = width;
+		this.speed = speed;
+		this.direction = direction;
+	}
+	public void cloud() {
+	}
+	/****************** constructors ends ****************/
+
+	/****************** private methods ******************/
+	// To do: Code here
+	/****************** private methods ends *************/
+
+	/****************** properties ***********************/
+	// To do: setters and getters code here
+	/****************** properties ends ******************/
+
+	/****************** public methods *******************/
+
+
+	public void setSpeed(double newSpeed) {
+		speed = newSpeed;
+	}
+
+	public void setDirection(String newDir) {
+		direction = newDir;
+	}
+
+	public double getSpeed() {
+		return speed;
+	}
+
+	public String getDir() {
+		return direction;
+	}
+	public void tickAction(){
+		if(this.position.getX()<2500){
+			this.position.setX(this.position.getX()+speed);
+		}
+		else{
+			this.position.setX(-2500);
+		}
+		
+	}
+	/****************** public methods ends **************/
+
+
+
+	
+}

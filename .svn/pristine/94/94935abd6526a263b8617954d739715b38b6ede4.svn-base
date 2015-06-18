@@ -1,0 +1,225 @@
+package models;
+
+import java.awt.Event;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+
+import javax.swing.Action;
+
+import service.OnePointPerspectiveService;
+import models.Ball.BallStatus;
+
+public abstract class Scenario extends APlotElement {
+
+	/****************** attributes ******************/
+	protected ArrayList<APlotElement> plotElements;
+	
+	Ball activatedBall;
+	Ball previousBall;
+	Ball onTeeBall;
+
+	BallStatusInfo ballInfoBoard;
+	PlotableTrajectory trajectoryBoard;
+	
+	HitMeBubble hitMeBubble;
+	private Tee tee; 
+	/****************** attributes ends *************/
+
+	/****************** constructors ******************/
+	public Scenario() {
+		this.plotElements = new ArrayList<APlotElement>();
+		//this.balls=new ArrayList<Ball>();
+		setup();
+	}
+
+	/****************** constructors ends *************/
+
+	/****************** private methods ******************/
+	
+	/****************** private methods ends *************/
+
+	/****************** properties ******************/
+	public Collection<APlotElement> getPlotElements() {
+		// make a copy of list to avoid concurrent modification exception
+		ArrayList<APlotElement> clonedPlotElements = new ArrayList<APlotElement>();
+		for(APlotElement ap: this.plotElements){
+			clonedPlotElements.add(ap);
+		}
+		return clonedPlotElements;
+	}
+	public Ball getActivatedBall(){
+		return this.activatedBall;
+	}
+	public Ball getPreviousBall(){
+		return this.previousBall;
+	}
+	
+	/****************** properties ends *************/
+
+	/****************** public methods ******************/
+
+	protected void setup() {
+
+		Cloud cloud = new Cloud(new Position(-5000, 2000, 299.5), 300, 600,
+				0.5, "");
+		this.plotElements.add(cloud);
+		Cloud cloud1 = new Cloud(new Position(-5100, 2000, 299.5), 300, 600,
+				1, "");
+		this.plotElements.add(cloud1);
+		// draw signs
+		final int WIDTH = 8;
+		final double SIGN_WIDTH = 1.0;
+		final double SIGN_HEIGHT = 1.0;
+		DistanceSign sign100L = new DistanceSign(new Position(-WIDTH, 0, 100),
+				SIGN_WIDTH, SIGN_HEIGHT);
+		this.plotElements.add(sign100L);
+		DistanceSign sign100R = new DistanceSign(new Position(WIDTH, 0, 100),
+				SIGN_WIDTH, SIGN_HEIGHT);
+		this.plotElements.add(sign100R);
+		DistanceSign sign150L = new DistanceSign(new Position(-WIDTH, 0, 150),
+				SIGN_WIDTH, SIGN_HEIGHT);
+		this.plotElements.add(sign150L);
+		DistanceSign sign150R = new DistanceSign(new Position(WIDTH, 0, 150),
+				SIGN_WIDTH, SIGN_HEIGHT);
+		this.plotElements.add(sign150R);
+		DistanceSign sign200L = new DistanceSign(new Position(-WIDTH, 0, 200),
+				SIGN_WIDTH, SIGN_HEIGHT);
+		this.plotElements.add(sign200L);
+		DistanceSign sign200R = new DistanceSign(new Position(WIDTH, 0, 200),
+				SIGN_WIDTH, SIGN_HEIGHT);
+		this.plotElements.add(sign200R);
+		DistanceSign sign250L = new DistanceSign(new Position(-WIDTH, 0, 250),
+				SIGN_WIDTH+0.4, SIGN_HEIGHT+0.4); // This was too small
+		this.plotElements.add(sign250L);
+		DistanceSign sign250R = new DistanceSign(new Position(WIDTH, 0, 250),
+				SIGN_WIDTH+0.4, SIGN_HEIGHT+0.4);  // This was too small
+		this.plotElements.add(sign250R);
+		// draw orcs
+
+//		Orc orc1 = new Orc(10, new Position(0, 0, 200), 1, 1);
+//		this.plotElements.add(orc1);
+//		Orc orc = new Orc(10, new Position(0, 0, 100), 1, 1);
+//		this.plotElements.add(orc);
+
+		// draw logo
+		// Logo logo = new Logo(new Position(0,50,290), 50, 15);
+		// this.plotElements.add(logo);
+		// add tee
+		this.tee = new Tee(new Position(0, 0, 1), 0.1, 0.15);
+		this.plotElements.add(tee);
+		
+//		Ball ball = new Ball(new Position(0, 0.15, 0.8), null, 0.1);
+//		this.ball = ball;
+//		this.plotElements.add(ball);
+		
+	
+		
+
+		
+		// sort by distance Z.
+		Collections.sort(this.plotElements, new DistanceComparator());
+	}
+	public void addNewBall(ArrayList<Position> positions){
+//		if(this.onTeeBall!=null){
+//			return; // only add new ball when tee has no ball
+//		}
+		Tee tee = this.tee;
+		double teeX=tee.position.x;
+		double teeY=tee.position.y;
+		double teeZ=tee.position.z;
+		Position ballPosition = new Position(teeX,teeY+0.2,teeZ-0.3); // place ball above tee.
+		Ball ball = new Ball(ballPosition);
+		ball.setTrajectory(positions);// add trajectory to the ball.
+		this.plotElements.add(ball);
+		this.previousBall=this.activatedBall; // store previous ball for replaying.
+		this.activatedBall=ball;// tell scenario it has a ball ready.
+		this.onTeeBall=ball;
+	}
+	public void addNewBall(){
+		addNewBall(null);
+	}
+	public void hitABall(){
+		if(this.activatedBall!=null ){
+			if( this.activatedBall.hasTrajectory()){
+				this.activatedBall.hit();
+			}
+				
+		}
+		
+	}
+	/*
+	 * change ball's status to onTee
+	 */
+	public void pickBalltoTee(){
+		if(this.activatedBall.status!=BallStatus.FLYING){
+			// remove from collection
+			this.plotElements.remove(this.activatedBall);
+			this.activatedBall=this.previousBall;
+			this.activatedBall.setBallOnTee();
+		}
+		
+	}
+	
+	
+	public void replay(){
+		this.pickBalltoTee();
+		this.hitABall();
+	}
+
+
+	public void setupBall(ArrayList<Position> positions){
+		Ball ball = this.getActivatedBall();
+		if(ball != null){
+			ball.setTrajectory(positions);
+		}
+	}
+	public Collection<PlotMessenger> getPlotMessengers() {
+		Collection<PlotMessenger> pms = new ArrayList<PlotMessenger>();
+		for (APlotElement pe : this.getPlotElements()) {
+			pms.add(OnePointPerspectiveService.convert(pe));
+		}
+		// TODO: sort them base on Z, z farthest on top.
+		return pms;
+	}
+	
+	public boolean isBallOnTee(){
+		return this.getActivatedBall().getOnTee();
+	}
+	
+	@Override
+	public void tickAction() {
+		
+		for (APlotElement pe : this.plotElements) {
+			if (pe != null) {
+				pe.tickAction();
+			}
+		}
+		
+		
+	}
+	public void removeHitMeBubble(){
+		if(this.plotElements.contains(hitMeBubble)){
+			this.plotElements.remove(hitMeBubble);
+		}
+	}
+	public void reset(){
+		ArrayList<APlotElement> ballsToRemove = new ArrayList<APlotElement>();
+		// find all balls.
+		for(APlotElement ap : this.plotElements){
+			if(ap instanceof Ball){
+				ballsToRemove.add(ap);
+			}
+		}
+		// remove all balls.
+		this.plotElements.removeAll(ballsToRemove);
+		this.activatedBall=null;
+		this.previousBall=null;
+		// reset boards.
+		this.ballInfoBoard.reset();
+		this.trajectoryBoard.reset();
+	}
+	/****************** public methods ends *************/
+
+}

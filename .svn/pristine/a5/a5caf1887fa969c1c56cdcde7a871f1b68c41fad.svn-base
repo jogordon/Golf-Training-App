@@ -1,0 +1,40 @@
+package models;
+
+import java.util.Date;
+
+public abstract class Record {
+	User user;
+	Date date;
+	ClubEnum iron;
+	
+	public Record(User user, Date date, ClubEnum iron) {
+		this.user = user;
+		this.date = date;
+		this.iron = iron;
+	}
+
+	public Date getDate() {
+		return date;
+	}
+	
+	public void setDate() {
+		this.date = new Date(System.currentTimeMillis());
+	}
+	
+	//set an associated a user with a Record
+	public void setUser(User userName) {
+		this.user = userName;
+	}
+	
+	public User getUser() {
+		return this.user;
+	}
+	
+	public void setIron(ClubEnum iron) {
+		this.iron = iron;
+	}
+	
+	public ClubEnum getIron() {
+		return this.iron;
+	}
+}

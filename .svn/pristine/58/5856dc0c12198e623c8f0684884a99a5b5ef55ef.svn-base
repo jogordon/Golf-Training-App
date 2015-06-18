@@ -1,0 +1,72 @@
+package controllers;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import old.stuff.ScenarioController;
+import models.Ball;
+import models.ClubEnum;
+import models.PlotMessenger;
+import models.Position;
+import models.Scenario;
+import views.AAnimationScreen;
+
+public abstract class AAnimationScreenController extends AScreenController  {
+
+	/****************** attributes ***********************/
+	protected ScenarioController scenarioController;
+	
+	Scenario scenario;
+	
+	boolean isReplay;
+	
+	/****************** attributes ends ******************/
+
+	/****************** constructors *********************/
+	public AAnimationScreenController(IRopeItController ropeitController) {
+		super(ropeitController);
+	}
+	/****************** constructors ends ****************/
+
+	/****************** private methods ******************/
+	protected void scaledPositions(ArrayList<Position> positions){
+		for(Position p : positions){
+			p.setY(p.y/5);
+		}
+	}
+	/****************** private methods ends *************/
+
+	/****************** properties ***********************/
+	public Collection<PlotMessenger> getPlotMessengers(){
+		return this.scenario.getPlotMessengers();
+	}
+	/****************** properties ends ******************/
+
+	/****************** public methods *******************/
+	
+	public void tickScenario(){
+		this.scenario.tickAction();
+		// fire action when ball landed.
+		if(this.scenario.getActivatedBall()!=null){
+			if(this.scenario.getActivatedBall().getLanded()){
+				ballLanded(this.scenario.getActivatedBall());
+			}
+		}
+	
+	}
+	public abstract void ballLanded(Ball ball);
+	
+	public abstract void hitBall();
+	public abstract ClubEnum switchClub();
+	public abstract void replay();
+	public void start() {
+		((AAnimationScreen) this.screen).start("Play Animation");
+	}
+
+	public void stop() {
+		((AAnimationScreen) this.screen).stop();
+	}
+	/****************** public methods ends **************/
+
+	
+
+}

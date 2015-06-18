@@ -1,0 +1,54 @@
+package models;
+
+import java.util.Date;
+
+public class TrainingSession extends ASession {
+
+	/****************** attributes ***********************/
+	ClubEnum iron;
+	/****************** attributes ends ******************/
+
+	/****************** constructors *********************/
+	public TrainingSession(User user){
+		super(user);
+		iron = ClubEnum.IRON5;
+	}
+	/****************** constructors ends ****************/
+
+	/****************** private methods ******************/
+	// To do: Code here
+	/****************** private methods ends *************/
+
+	/****************** properties ***********************/
+	
+	/****************** properties ends ******************/
+
+	/****************** public methods *******************/
+	public void addRecord(
+			double velocity, double vertAngle, 
+			double horzAngle, double spin, 
+			double xLanding, double yLanding){
+		
+		
+		TrainingRecord record= new TrainingRecord(this.user, 
+				new Date(System.currentTimeMillis()),
+				iron, 
+				this.getSessionName(),
+				velocity, 
+				vertAngle, 
+				horzAngle, 
+				spin, 
+				xLanding, 
+				yLanding);
+		
+			super.addRecord(record);
+	}
+	public ClubEnum getIron() {
+		return iron;
+	}
+	public void setIron(ClubEnum iron) {
+		this.iron = iron;
+	}
+	/****************** public methods ends **************/
+
+}

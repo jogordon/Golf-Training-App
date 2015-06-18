@@ -1,0 +1,154 @@
+package controllers;
+
+import java.awt.Dimension;
+
+import javax.swing.JFrame;
+
+import service.ImageService;
+import service.OnePointPerspectiveService;
+import views.RopeItProScreen;
+import models.PlayMode;
+import models.RopeItPro;
+import models.ScreenEnum;
+import models.User;
+
+public class RopeItController implements IRopeItController {
+
+	/****************** attributes ******************/
+	RopeItPro ropeItPro;
+	RopeItProScreen screenHolder;
+	WelcomeScreenController welcomeScreenController;
+	//MainMenuController mainMenuController;
+	HighScoreController highScoreController;
+	HistoryController historyController;
+	AchievementController achievementController;
+	GameController gameController;
+	TrainingController trainningController;
+	ScenarioController scenarioController;
+
+	Dimension windowSize;
+
+	/****************** attributes ends *************/
+
+	/****************** constructors ******************/
+	public RopeItController(RopeItProScreen gui) {
+		initializeServices();
+		
+		this.ropeItPro = new RopeItPro();
+		screenHolder = gui;
+		
+	}
+
+	/****************** constructors ends *************/
+
+	/****************** private methods ******************/
+	private void initializeServices(){
+		ImageService.initialize();
+		OnePointPerspectiveService.initialize();
+	}
+	/****************** private methods ends *************/
+
+	/****************** properties ******************/
+	@Override
+	public User getCurrentUser() {
+		return this.ropeItPro.getUser();
+	}
+	@Override
+	public void setCurrentUser(User user){
+		this.ropeItPro.setUser(user);
+	}
+	/****************** properties ends *************/
+
+	/****************** public methods ******************/
+	public void display(Dimension screenSize) {
+		this.windowSize = screenSize;
+		this.welcomeScreenController = new WelcomeScreenController(this);
+		//this.mainMenuController = new MainMenuController(this);
+		this.highScoreController = new HighScoreController(this);
+		this.historyController = new HistoryController(this);
+		this.achievementController = new AchievementController(this);
+		this.gameController = new GameController(this);
+		this.trainningController=new TrainingController(this);
+		showScreen(ScreenEnum.WELCOME_SCREEN);
+	}
+
+	@Override
+	public void showScreen(ScreenEnum screen) {
+		// stop all animations
+		this.welcomeScreenController.stop();
+		this.highScoreController.stop();
+		this.historyController.stop();
+		this.gameController.stop();
+		this.trainningController.stop();
+		switch (screen) {
+		case WELCOME_SCREEN: {
+			// TODO: logout if has user.
+			screenHolder.setScreen(this.welcomeScreenController.getScreen());
+			this.welcomeScreenController.start();
+			break;
+		}
+		case GAMING: {
+			// TODO: setup play controller for game mode
+			screenHolder.setScreen(this.gameController.getScreen());
+			this.gameController.start();
+			break;
+		}
+		case TRAINING: {
+			// TODO: setup play controller for train mode
+			screenHolder.setScreen(this.trainningController.getScreen());
+			this.trainningController.start();
+			break;
+		}
+		case HISTORY: {
+			screenHolder.setScreen(this.historyController.getScreen());
+			this.historyController.start();
+			break;
+		}
+		case HIGHSCORE: {
+			screenHolder.setScreen(this.highScoreController.getScreen());
+			this.highScoreController.displayHighScore();
+			this.highScoreController.start();
+			break;
+		}
+		case ACHIEVEMENT: {
+			screenHolder.setScreen(this.achievementController.getScreen());
+			this.achievementController.displayAchievement();
+			break;
+		}
+		default:
+			break;
+		}
+
+	}
+	
+	public void logout(){
+		this.setCurrentUser(null);
+	}
+	
+	@Override
+	public Dimension getWindowSize() {
+		// TODO Auto-generated method stub
+		return this.windowSize;
+	}
+
+	/****************** public methods ends *************/
+
+	public static void main(String[] args) {
+		Dimension screenSize;
+		RopeItProScreen mainView = new RopeItProScreen();
+		RopeItController ropeitController = new RopeItController(mainView);
+
+		JFrame frame = new JFrame("RopeIt Pro");
+		//frame.setMinimumSize(new Dimension(800, 640));
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		// add contents to window
+		frame.add(mainView);
+
+		
+		frame.setVisible(true);
+		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		screenSize= frame.getSize();
+		ropeitController.display(screenSize);
+	}
+
+}

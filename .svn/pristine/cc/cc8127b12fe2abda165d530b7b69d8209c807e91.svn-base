@@ -1,0 +1,47 @@
+package views;
+
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+
+import javax.swing.*;
+
+import controllers.RopeItController;
+
+public class RopeItProScreen extends AScreen{
+	AScreen screen;
+
+	public RopeItProScreen(){
+		
+		
+	}
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8625946434331588503L;
+	
+	/**
+	 * 
+	 * @param screen
+	 */
+	public void setScreen(AScreen screen){
+		if(screen !=null){
+			if(this.screen!=null){
+				// this screen only contain one screen, use remove all to ensure remove previous screen
+				this.removeAll(); 
+			}
+			this.setLayout(new BorderLayout());
+			this.setBackground(Color.black);
+			this.screen=screen;
+			this.add(this.screen, BorderLayout.CENTER);
+			this.screen.fitToParentSize();
+			this.revalidate(); // required to show controls.
+			this.repaint();// require to repaint to refresh screen
+			this.screen.setSize(getSize());
+		}
+		
+	}
+	
+	
+	
+}

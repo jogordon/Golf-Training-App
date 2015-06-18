@@ -1,0 +1,159 @@
+package views;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import controllers.TrainingController;
+import models.ClubEnum;
+import models.LastShotTableModel;
+import models.SessionTableModel;
+import net.miginfocom.swing.MigLayout;
+
+public class TrainingScreen extends AAnimationScreen {
+
+	/****************** attributes ******************/
+	private static final long serialVersionUID = 5844727341056620296L;
+	ImageIcon fiveIron = new ImageIcon("src/resources/fiveIron.png");
+	ImageIcon nineIron = new ImageIcon("src/resources/nineIron.png");
+	JLabel lblTitle;
+	JButton btnHitBall;
+	JButton btnSwitchClub;
+	JButton btnTutorial;
+	SessionTableModel sessionTableModel;
+	LastShotTableModel lastShotTableModel;
+	/****************** attributes ends *************/
+
+	/****************** constructors ******************/
+	public TrainingScreen(TrainingController controller) {
+		super(controller);
+		backPanel.setLayout(new BorderLayout());
+		backPanel.add(this.animationView,BorderLayout.CENTER);
+		frontPanel.setLayout(new BorderLayout());
+		frontPanel.add(createFrontPanel(),BorderLayout.CENTER);
+		
+	}
+	/****************** constructors ends *************/
+
+	/****************** private methods ******************/
+	private JPanel createFrontPanel(){
+		JPanel frontPanel = new JPanel(new MigLayout("", "", "[]push[]")); // col: 0, row 2, push: empty between rows.
+		frontPanel.setOpaque(false); // set to transparent background
+		
+		JPanel topSubPanel = new JPanel(new MigLayout("","20[250]push[]push[250]20","push[]push[]push"));// three columns, 2 row
+		topSubPanel.setOpaque(false);
+		//topSubPanel.add(createSessionAveTable(),""); // create session table
+		topSubPanel.add(createLastShotPanel(), "cell 0 0");
+		createTutorialBtn();		
+		topSubPanel.add(btnTutorial, "Cell 1 1, grow");
+		frontPanel.add(topSubPanel, "grow, pushx, wrap"); // expend to fill top. wrap: end of this row in front panel
+		
+		JPanel bottomSubPanel = new JPanel(new MigLayout("","[]40%[]20%[]push[]",""));
+		frontPanel.add(bottomSubPanel ,"grow, pushx");
+		
+		bottomSubPanel.setOpaque(false);
+		bottomSubPanel.add(this.btnMainMenu,""); // don't need to create main menu button.
+		bottomSubPanel.add(createHitBallButton());
+		bottomSubPanel.add(createSwitchClubButton());
+		bottomSubPanel.add(this.getReplayButton(),"");
+		return frontPanel;
+	}
+	
+	private JPanel createSessionAveTable(){
+		this.sessionTableModel=new SessionTableModel();
+		this.sessionTableModel.addRow(100, 0);
+		JTable sessionTable = new JTable(this.sessionTableModel);
+		JPanel panel = new JPanel(new MigLayout("","","[][]"));
+		panel.setOpaque(false);// transparent.
+		JLabel tableTitle = new JLabel("Session Average");
+		panel.add(tableTitle,"wrap,push,grow");
+		panel.add(sessionTable, "span");
+		return panel;
+	}
+	
+	private JPanel createLastShotPanel(){
+		this.lastShotTableModel=new LastShotTableModel();
+		this.lastShotTableModel.show(0, 0); //default 0
+		JTable sessionTable = new JTable(this.lastShotTableModel);
+		JPanel panel = new JPanel(new MigLayout("","","[][]"));
+		panel.setOpaque(false);// transparent.
+		JLabel tableTitle = new JLabel("Last Shot");
+		panel.add(tableTitle,"wrap,push,grow");
+		panel.add(sessionTable, "span");
+		return panel;
+	}
+	
+	private JButton createHitBallButton(){
+		btnHitBall= new JButton("");
+		btnHitBall.setPreferredSize(new Dimension(100, 100));
+		btnHitBall.setContentAreaFilled(false);
+		btnHitBall.setBorderPainted(false);
+		btnHitBall.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				getController().hitBall();
+			}
+		});
+		return btnHitBall;
+	}
+	private JButton createSwitchClubButton(){
+		btnSwitchClub = new JButton(scaleIcon(fiveIron));
+		btnSwitchClub.setPreferredSize(new Dimension(200, 100));
+		btnSwitchClub.setContentAreaFilled(false);
+		btnSwitchClub.setBorderPainted(false);
+		btnSwitchClub.setFocusPainted(false);
+		btnSwitchClub.setToolTipText("Switch Club");
+		btnSwitchClub.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(getController().switchClub() == ClubEnum.IRON9) {
+					btnSwitchClub.setIcon(scaleIcon(nineIron));
+				}
+				else { btnSwitchClub.setIcon(scaleIcon(fiveIron));}
+			}
+		});
+		return btnSwitchClub;
+	}
+	private void createTutorialBtn(){
+		btnTutorial = new JButton(new ImageIcon("src/resources/TrainingTutorial.png"));
+		btnTutorial.setContentAreaFilled(false);
+		btnTutorial.setBorderPainted(false);
+		btnTutorial.setFocusPainted(false);
+		btnTutorial.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnTutorial.setIcon(null);
+				btnTutorial.setEnabled(false);
+			}
+		});
+	}
+	private ImageIcon scaleIcon(ImageIcon icon){
+		Image img = icon.getImage();  
+		Image newimg = img.getScaledInstance( 70, 70,  java.awt.Image.SCALE_SMOOTH ) ;  
+		return new ImageIcon( newimg );
+	}
+	/****************** private methods ends *************/
+
+	/****************** properties ******************/
+	
+	/****************** properties ends *************/
+
+	/****************** public methods ******************/
+	public void setHitBallButtonListener(ActionListener l){
+		btnHitBall.addActionListener(l);
+	}
+	public void showLastShot(double distance, double maxHeight){
+		this.lastShotTableModel.show(distance, maxHeight);
+	}
+	
+	/****************** public methods ends *************/
+}

@@ -1,0 +1,122 @@
+package controllers;
+
+import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Random;
+
+import service.Database;
+import service.ShotSimulatorService;
+import views.*;
+import models.*;
+
+public class GameController extends AAnimationScreenController {
+
+	/****************** attributes ******************/
+	private GameSession session;
+	/****************** attributes ends *************/
+
+	/****************** constructors ******************/
+	public GameController(IRopeItController ropeitController) {
+		super(ropeitController);
+		this.scenario=new GameScenario();
+		this.screen = new GameScreen(this);
+		setupReturnMainMenuListener();
+	}
+
+	/****************** constructors ends *************/
+	
+	/****************** private methods ******************/
+	private void createNewSession(){
+		User user = ropeitController.getCurrentUser();
+		this.session = new GameSession(user);
+	}
+	
+	/****************** private methods ends *************/
+
+	/****************** properties ******************/
+	// To do: setters and getters code here
+	/****************** properties ends *************/
+
+	/****************** public methods ******************/
+	
+	/**
+	 * Generate a random shot, and store it to session.
+	 */
+	@Override
+	public void hitBall(){
+		// return if no ball to hit.
+		if(this.scenario.isBallOnTee()==false){
+			return;
+		}
+		// generate random shot.
+		Random r = new Random();
+		double velocity = 100 + 60 * r.nextDouble();
+		double vertAngle = 7 + (20 - 7) * r.nextDouble();
+		double horizontalAngle = -0.5 + 1 * r.nextDouble();
+		double spinRate = 2000 + (7000 - 2000) * r.nextDouble();
+		ArrayList<Position> positions= ShotSimulatorService.calcBallFlight(velocity, vertAngle, horizontalAngle, spinRate);
+		scaledPositions(positions);
+		// assign positions to ball
+		this.scenario.setupBall(positions);
+		
+//		//printPositions(positions);
+//		// store to session
+//		Position lastPosition = positions.get(positions.size()-1);
+//		double xLanding = lastPosition.x;
+//		double zLanding = lastPosition.z;
+//		this.session.addRecord(score, date, iron);;
+		// display animation.
+		this.scenario.hitABall();
+	}
+	@Override
+	public void replay(){
+		this.isReplay=true;
+		this.scenario.replay();
+	}
+	@Override
+	public void tickScenario(){
+		super.tickScenario();
+	}
+	@Override
+	public void ballLanded(Ball ball) {
+		if(isReplay){ // don't record replay
+			isReplay=false;
+			return;
+		}
+		double distance = ((GameScenario)this.scenario).getBallLandedDistanceToFlag();
+		final int SCORE_THRESHOLD= 2000;
+		int score;
+		if(distance<=SCORE_THRESHOLD/50){
+			score=(int)(SCORE_THRESHOLD-(distance*50));
+		}
+		else{
+			score=0;
+		}
+		this.session.incrementScore(score);
+		// display total score.
+		((GameScreen)screen).setTotalScore(this.session.getTotalScore());
+	}
+	@Override
+	public void start() {
+		super.start();
+		this.createNewSession();
+	}
+	
+	@Override
+	public void stop(){
+		super.stop();
+		// save session to database.
+		if(this.session!=null){
+			Database.getInstance().insertGameRecord(new GameRecord(ropeitController.getCurrentUser(), 
+				this.session.getTotalScore(), new Date()));
+			// discard session.
+			this.session=null;
+		}
+		
+	}
+	/****************** public methods ends *************/
+
+	
+
+}

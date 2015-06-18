@@ -1,0 +1,263 @@
+package TestsPackage;
+
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+
+import org.junit.Test;
+
+import models.AchievementRecord;
+import models.ClubEnum;
+import models.GameRecord;
+import models.TrainingRecord;
+import models.User;
+import service.Database;
+
+public class DatabaseTest {
+	
+	Database db = Database.getInstance();
+
+	@Test
+	public void singleton_test() {
+
+		Database db2 = Database.getInstance();
+		assertEquals(db, db2);
+	}
+	@Test
+	public void DatabaseCreation_test() {
+
+		assertEquals("User, TrainingRecord, GameRecord, Achievements, ", db.toString());
+		
+    }
+	@Test
+    public void createUser_login_test() {
+		assertTrue(db.clearDatabase());
+		assertTrue(db.createNewUser("TerryHarvey", "SpamALot"));
+		assertTrue(db.createNewUser("JohnGordon", "bacon"));
+    	assertTrue(db.login("TerryHarvey", "SpamALot"));
+    	assertTrue(db.login("JohnGordon", "bacon"));
+    	assertFalse(db.login("JohnGordon", "SpamALot"));
+    	assertFalse(db.login("TerryHarvey", "bacon"));
+    	assertTrue(db.clearDatabase());
+    } 
+    @Test
+    public void GameRecords_test() {
+    	assertTrue(db.clearDatabase());
+    	db.createNewUser("John", "Bacon");
+    	db.createNewUser("Terry", "SpamALot");
+    	GameRecord first = new GameRecord(new User("John"), 500, new Date(System.currentTimeMillis()+1000));
+    	GameRecord second = new GameRecord(new User("John"), 100, new Date(System.currentTimeMillis()));
+    	GameRecord third = new GameRecord(new User("John"), 9000000, new Date(System.currentTimeMillis()-3000));
+    	GameRecord fourth = new GameRecord(new User("Terry"), 2000, new Date(System.currentTimeMillis()+5000));
+    	GameRecord fifth = new GameRecord(new User("Terry"), 700000, new Date(System.currentTimeMillis()-1000));
+    	assertTrue(db.insertGameRecord(first));
+    	System.out.println("Test");
+    	assertTrue(db.insertGameRecord(second));
+    	assertTrue(db.insertGameRecord(third));
+    	assertTrue(db.insertGameRecord(fourth));
+    	assertTrue(db.insertGameRecord(fifth));
+    	List<GameRecord> highScores = db.getHighScores(5);
+    	assertEquals(third.getUser().getName(), highScores.get(0).getUser().getName());
+    	assertEquals(fifth.getScore(), highScores.get(1).getScore());
+    	assertEquals(fourth.getUser().getName(), highScores.get(2).getUser().getName());
+    	assertEquals(first.getScore(), highScores.get(3).getScore());
+    	assertEquals(second.getUser().getName(), highScores.get(4).getUser().getName());
+    	//assertTrue(db.clearDatabase());
+    }
+    
+  
+    @Test
+    public void TrainingRecord_test() {
+    	assertTrue(db.clearDatabase());
+    	db.createNewUser("John", "Bacon");
+    	db.createNewUser("Terry", "SpamALot");
+    	Date aDate = new Date(System.currentTimeMillis());
+    	TrainingRecord record1 = new TrainingRecord(new User("John"), 
+    			aDate, ClubEnum.IRON5, "session", 130, 12, 2, 6000, -30, 170);
+    	TrainingRecord record2 = new TrainingRecord(new User("John"), 
+    			aDate, ClubEnum.IRON5, "session", 130, 12, 2, 6000, -30, 170);
+    	TrainingRecord record3 = new TrainingRecord(new User("Steve"), 
+    			new Date(System.currentTimeMillis()), ClubEnum.IRON9, "session2", 
+    			100, 12, -5, 0, 0, 100);
+    	TrainingRecord record4 = new TrainingRecord(new User("Terry"), 
+    			new Date(System.currentTimeMillis()), ClubEnum.IRON9, "session2", 
+    			100, 12, -5, 0, 0, 100);
+    	assertTrue(db.insertTrainingRecord(record1));
+    	assertFalse(db.insertTrainingRecord(record2));
+    	assertFalse(db.insertTrainingRecord(record3));
+    	assertTrue(db.insertTrainingRecord(record4));
+    	assertTrue(db.clearDatabase());
+    }
+    @Test
+    public void Achievements_test() {
+    	db.clearDatabase();
+    	db.createNewUser("John", "Bacon");
+    	db.createNewUser("Terry", "password");
+    	int time = 0;
+    	double horzAngle = 0;
+    	for(int i = 0; i < 4; i++) {
+    		time = time + 1000;
+    		Random r = new Random();
+    		horzAngle = -3 + (6) * r.nextDouble();
+    		TrainingRecord record = new TrainingRecord(new User("John"), 
+    			new Date(System.currentTimeMillis()+ time), ClubEnum.IRON5, "session",
+    			130, 12, horzAngle, 6000, 0, 170);	
+    		assertTrue(db.insertTrainingRecord(record));
+    	}
+    	TrainingRecord record5 = new TrainingRecord(new User("Terry"), 
+    			new Date(System.currentTimeMillis()+ time + 5000), ClubEnum.IRON5, 
+    			"session", 130, 12, 0, 6000, 0, 170);
+    	assertTrue(db.insertTrainingRecord(record5));
+    	AchievementRecord achievement1 = db.getAchievements(new User("John"));
+    	assertFalse(achievement1.getSteadyForm());
+    	TrainingRecord record6 = new TrainingRecord(new User("John"), 
+    			new Date(System.currentTimeMillis()+ time + 2000), ClubEnum.IRON5, 
+    			"session", 130, 12, 0, 6000, 0, 170);
+    	assertTrue(db.insertTrainingRecord(record6));
+    	AchievementRecord achievement2 = db.getAchievements(new User("John"));
+    	assertTrue(achievement2.getSteadyForm());
+    	time = time+3000;
+    	for(int i = 0; i < 15; i++) {
+    		time = time + 1000;
+    		Random r = new Random();
+    		horzAngle = -3 + (6) * r.nextDouble();
+    		TrainingRecord record = new TrainingRecord(new User("John"), 
+    			new Date(System.currentTimeMillis()+ time), ClubEnum.IRON5, "session",
+    			130, 12, horzAngle, 6000, 0, 170);	
+    		assertTrue(db.insertTrainingRecord(record));
+    	}
+    	AchievementRecord achievement3 = db.getAchievements(new User("John"));
+    	assertTrue(achievement3.getSteadyForm());
+    	assertTrue(achievement3.getSharpShooter());
+   		TrainingRecord record7 = new TrainingRecord(new User("John"), 
+    			new Date(System.currentTimeMillis()+ time+1000), ClubEnum.IRON5, "session",
+    			130, 12, 10, 6000, 0, 170);	
+    	assertTrue(db.insertTrainingRecord(record7));
+    	time = time+1000;
+    	for(int i = 0; i < 30; i++) {
+    		time = time + 1000;
+    		Random r = new Random();
+    		horzAngle = -3 + (6) * r.nextDouble();
+    		TrainingRecord record = new TrainingRecord(new User("John"), 
+    			new Date(System.currentTimeMillis()+ time), ClubEnum.IRON5, "session",
+    			130, 12, horzAngle, 6000, 0, 170);	
+    		assertTrue(db.insertTrainingRecord(record));
+    	}
+    	AchievementRecord achievement4 = db.getAchievements(new User("John"));
+    	assertFalse(achievement4.getInOrbit());
+    	for(int i = 0; i < 20; i++) {
+    		time = time + 1000;
+    		Random r = new Random();
+    		horzAngle = -3 + (6) * r.nextDouble();
+    		TrainingRecord record = new TrainingRecord(new User("John"), 
+    			new Date(System.currentTimeMillis()+ time), ClubEnum.IRON5, "session",
+    			130, 12, horzAngle, 6000, 0, 170);	
+    		assertTrue(db.insertTrainingRecord(record));
+    	}
+    	AchievementRecord achievement5 = db.getAchievements(new User("John"));
+    	AchievementRecord achievement6 = db.getAchievements(new User("Terry"));
+    	assertTrue(achievement5.getTheRobot());
+    	assertFalse(achievement6.getSharpShooter());
+    	assertFalse(achievement6.getTheRobot());
+		TrainingRecord record8 = new TrainingRecord(new User("John"), 
+    			new Date(System.currentTimeMillis()+ time+1000), ClubEnum.IRON5, "session",
+    			130, 12, horzAngle, 6000, 0, 200);	
+    	assertTrue(db.insertTrainingRecord(record8));
+    	AchievementRecord achievement7 = db.getAchievements(new User("John"));
+    	assertTrue(achievement7.getTwoHundred());
+    	assertFalse(achievement7.getPowerShot());
+    	assertFalse(achievement7.getInOrbit());
+		TrainingRecord record9 = new TrainingRecord(new User("John"), 
+    			new Date(System.currentTimeMillis()+ time+2000), ClubEnum.IRON5, "session",
+    			130, 12, horzAngle, 6000, 0, 225);	
+    	assertTrue(db.insertTrainingRecord(record9));
+    	AchievementRecord achievement8 = db.getAchievements(new User("John"));
+     	assertTrue(achievement8.getPowerShot());
+    	assertFalse(achievement8.getInOrbit());
+		TrainingRecord record10 = new TrainingRecord(new User("John"), 
+    			new Date(System.currentTimeMillis()+ time+3000), ClubEnum.IRON5, "session",
+    			130, 12, horzAngle, 6000, 0, 250);	
+    	assertTrue(db.insertTrainingRecord(record10));
+    	AchievementRecord achievement9 = db.getAchievements(new User("John"));
+    	assertTrue(achievement9.getInOrbit());
+    	GameRecord game1 = new GameRecord(new User("John"), 10000, new Date(System.currentTimeMillis()));
+    	GameRecord game2 = new GameRecord(new User("John"), 15000, new Date(System.currentTimeMillis()+1000));
+    	GameRecord game3 = new GameRecord(new User("John"), 20000, new Date(System.currentTimeMillis()+2000));
+    	assertTrue(db.insertGameRecord(game1));
+    	AchievementRecord achievement10 = db.getAchievements(new User("John"));
+    	assertTrue(achievement10.getAmateurChamp());
+    	assertFalse(achievement10.getTourPro());
+    	assertFalse(achievement10.getMajorChamp());
+    	assertTrue(db.insertGameRecord(game2));
+    	AchievementRecord achievement11 = db.getAchievements(new User("John"));
+    	assertTrue(achievement11.getTourPro());
+    	assertFalse(achievement11.getMajorChamp());
+    	assertTrue(db.insertGameRecord(game3));
+    	AchievementRecord achievement12 = db.getAchievements(new User("John"));
+    	assertTrue(achievement12.getMajorChamp());
+    	assertTrue(db.clearDatabase());
+    } 
+    @Test
+    public void getRecordDates_test() {
+    	assertTrue(db.clearDatabase());
+    	db.createNewUser("John", "Bacon");
+    	db.createNewUser("Terry", "password");
+    	long time = 0;
+    	double horzAngle = 0;
+    	for(int i = 0; i < 5; i++) {
+    		time = time + 100000000;
+    		Random r = new Random();
+    		horzAngle = -3 + (6) * r.nextDouble();
+    		TrainingRecord record = new TrainingRecord(new User("John"), 
+    			new Date(time), ClubEnum.IRON5, "session",
+    			130, 12, horzAngle, 6000, 0, 170);	
+    		assertTrue(db.insertTrainingRecord(record));
+    	}
+    	TrainingRecord record = new TrainingRecord(new User("Terry"), 
+    			new Date(System.currentTimeMillis()), ClubEnum.IRON5, "session",
+    			130, 12, horzAngle, 6000, 0, 170);	
+    		assertTrue(db.insertTrainingRecord(record));
+    	ArrayList<Date> dates = db.getRecordDates(new User("John"));
+    	assertEquals(5, dates.size());
+    	assertEquals(new Date(100000000).getDay(), dates.get(0).getDay());
+    	assertEquals(new Date(200000000).getMonth(), dates.get(1).getMonth());
+    	assertEquals(new Date(300000000).getYear(), dates.get(2).getYear());
+    	assertEquals(new Date(400000000).getDay(), dates.get(3).getDay());
+    	assertEquals(new Date(500000000).getMonth(), dates.get(4).getMonth());
+    	assertTrue(db.clearDatabase());
+    }
+    @Test
+    public void getRecords_test() {
+    	assertTrue(db.clearDatabase());
+    	db.createNewUser("John", "Bacon");
+    	db.createNewUser("Terry", "password");
+    	double horzAngle = 0;
+    	long time = System.currentTimeMillis();
+    	long time2 = time;
+    	for(int i = 0; i < 5; i++) {
+    		time2 = time2 + 1000000000;
+    		Random r = new Random();
+    		horzAngle = -3 + (6) * r.nextDouble();
+    		TrainingRecord record = new TrainingRecord(new User("John"), 
+    				new Date(time2), ClubEnum.IRON5, "session", 130, 12, horzAngle, 
+    				6000, 0, 170);	
+    		assertTrue(db.insertTrainingRecord(record));
+    	}
+		TrainingRecord record2 = new TrainingRecord(new User("John"), 
+				new Date(time2+500000000), ClubEnum.IRON5, "session", 130, 12, horzAngle, 
+				6000, 0, 170);	
+		assertTrue(db.insertTrainingRecord(record2));
+		TrainingRecord record3 = new TrainingRecord(new User("John"), 
+				new Date(time2-50000000), ClubEnum.IRON9, "session", 130, 12, horzAngle, 
+				6000, 0, 170);	
+		assertTrue(db.insertTrainingRecord(record3));
+    	ArrayList<TrainingRecord> records = db.getTrainingRecords("John", 
+    			new Date(time + 100000000), new Date(time2), "IRON5");
+    	assertEquals(5, records.size());
+    	assertTrue(db.clearDatabase());
+    	
+    }
+}

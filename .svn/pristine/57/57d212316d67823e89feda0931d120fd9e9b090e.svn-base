@@ -1,0 +1,85 @@
+package models;
+
+import java.awt.Point;
+import java.util.ArrayList;
+
+public class GreenView extends APlotElement {
+	/****************** attributes ***********************/
+	Position center; // target position.
+	ArrayList<Position> landedBallPositions;
+	Position flyingBallPosition;
+	double viewWidth,viewHeight; // what area the green will covert in yards
+	/****************** attributes ends ******************/
+
+	/****************** constructors *********************/
+	public GreenView(Position position, double width, double height, 
+			Position center,
+			double viewWidth){
+		super(position, width, height);
+		this.center=center;
+		this.landedBallPositions=new ArrayList<Position>();
+		
+		this.viewWidth=viewWidth;
+		this.viewHeight=height*viewWidth/width; // calculate corresponding view height.
+	}
+	/****************** constructors ends ****************/
+
+	/****************** private methods ******************/
+	private double getYardsToCenterX(double x){
+		return x-this.center.x;
+	}
+	private double getYardsToCenterZ(double z){
+		return z-this.center.z;
+	}
+	private double calculateAbsoluteX(double x){
+		return this.viewWidth+getYardsToCenterX(x);
+	}
+	private double calculateAbsoluteZ(double z){
+		return this.viewHeight+getYardsToCenterZ(z);
+	}
+	/****************** private methods ends *************/
+
+	/****************** properties ***********************/
+	public ArrayList<Position> getLandedPositions(){
+		return this.landedBallPositions;
+	}
+	public Position getFlyingPosition(){
+		return this.flyingBallPosition;
+	}
+	public double getFlyBallToCenterDistanceX(){
+		return this.flyingBallPosition.x-this.center.x;
+	}
+	public double getFlyBallToCenterDistanceZ(){
+		return this.flyingBallPosition.z-this.center.z;
+	}
+	public double getViewSize(){
+		return this.viewWidth;
+	}
+	/*
+	 *  Top left point would be (0,0)
+	 */
+	public double getFlyBallAbsoluteX(){
+		return calculateAbsoluteX(this.flyingBallPosition.x);
+	}
+	public double getFlyBallAbsoluteZ(){
+		return calculateAbsoluteZ(this.flyingBallPosition.z);
+	}
+	/****************** properties ends ******************/
+
+	/****************** public methods *******************/
+	/*
+	 * if ball is flying, display it as flying dot, 
+	 * if landed, add to landedBallPositions.
+	 */
+	public void updateBall(Ball ball){
+		if(ball.getFlying()){
+			this.flyingBallPosition=ball.getPosition().Clone();
+		}
+		else if(ball.getLanded()){
+			if(this.flyingBallPosition!=null){
+				this.landedBallPositions.add(flyingBallPosition);
+			}
+		}
+	}
+	/****************** public methods ends **************/
+}

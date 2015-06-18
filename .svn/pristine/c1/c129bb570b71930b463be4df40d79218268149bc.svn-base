@@ -1,0 +1,470 @@
+package service;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+
+import models.*;
+
+public class ImageService {
+
+	/****************** attributes ******************/
+	static Boolean initialied = false;
+	static HashMap<Class<? extends APlotElement>, BufferedImage> plotElementMap;
+	static HashMap<Class<? extends APlotElement>, BufferedImage> shadowMap;
+	static HashMap<String, BufferedImage> generalMap;
+
+	static HashMap<Class<? extends AAnimatedElement>, ArrayList<BufferedImage>> animatedElementMap;
+
+	static final String IMAGE_ROOT = "src/resources/";
+	static final String BACKGROUND = "background";
+	static final String BACKPANEL = "backPanel";
+	static final String DISTANCESIGN100 = "DistanceSign100";
+	static final String DISTANCESIGN150 = "DistanceSign150";
+	static final String DISTANCESIGN200 = "DistanceSign200";
+	static final String DISTANCESIGN250 = "DistanceSign250";
+	static final String CREATEUSER = "CreateUser";
+	static final String LOGIN = "Login";
+	static final String GAME = "Game";
+	static final String TRAIN = "Train";
+	static final String HISTORY = "History";
+	static final String ACHIEVEMENTS = "Achievements";
+	static final String HIGHSCORE = "HighScore";
+	static final String LOGOUT = "Logout";
+	static final String BALL_SHADOW = "Ball Shadow";
+	static final String RECTANGLE_MARKER = "Rectang leMarker";
+	static final String GREEN_VIEW = "Green View";
+
+	/****************** attributes ends *************/
+
+	/****************** constructors ******************/
+	// To do: Code here
+	/****************** constructors ends *************/
+
+	/****************** private methods ******************/
+
+	private static ArrayList<BufferedImage> getOrcImages() {
+		int imgWidth = 165;
+		int imgHeight = 165;
+
+		BufferedImage image = null;
+		try {
+			image = ImageIO.read(new File(IMAGE_ROOT + "orc_forward_east.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		if (image != null) {
+			ArrayList<BufferedImage> subImages = new ArrayList<BufferedImage>();
+			for (int i = 0; i < 10; i++)
+				subImages.add(image.getSubimage(imgWidth * i, 0, imgWidth,
+						imgHeight));
+			return subImages;
+		} else {
+			return null;
+		}
+
+	}
+
+	private static void cacheAnimatedImages() {
+		if (animatedElementMap == null) {
+			animatedElementMap = new HashMap<Class<? extends AAnimatedElement>, ArrayList<BufferedImage>>();
+		}
+		animatedElementMap.put(Orc.class, getOrcImages());
+	}
+
+	private static void cacheShadowImages() {
+		if (shadowMap == null) {
+			shadowMap = new HashMap<Class<? extends APlotElement>, BufferedImage>();
+		}
+		BufferedImage bufferedImage = null;
+		// cache ball shadow image.
+		try {
+			bufferedImage = ImageIO
+					.read(new File(IMAGE_ROOT + "BallShadow.png"));
+			shadowMap.put(Ball.class, bufferedImage);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/***
+	 * http://stackoverflow.com/questions/2658554/using-graphics2d-to-overlay-
+	 * text-on-a-bufferedimage-and-return-a-bufferedimage
+	 * 
+	 * @param old
+	 * @return
+	 */
+	private static BufferedImage getDynamicDistanceSign(double number) {
+		BufferedImage RectangleMarker = generalMap.get(RECTANGLE_MARKER);
+
+		int w = RectangleMarker.getWidth();
+		int h = RectangleMarker.getHeight();
+		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = img.createGraphics();
+		g2d.drawImage(RectangleMarker, 0, 0, null);
+		g2d.setPaint(Color.black);
+		g2d.setFont(new Font("Stencil", Font.BOLD, 130));
+		String s = Integer.toString((int) number);
+		FontMetrics fm = g2d.getFontMetrics();
+		int x = w / 2 - fm.stringWidth(s) / 2;
+		int y = fm.getHeight() - 40;
+		g2d.drawString(s, x, y);
+		g2d.dispose();
+		return img;
+	}
+
+	/**
+	 * http://stackoverflow.com/questions/4413132/problems-with-newline-in-
+	 * graphics2d-drawstring
+	 * 
+	 * @param g2d
+	 * @param text
+	 * @param x
+	 * @param y
+	 */
+	private static void drawString(Graphics2D g2d, String text, int x, int y) {
+		for (String line : text.split("\n"))
+			g2d.drawString(line, x, y += g2d.getFontMetrics().getHeight());
+	}
+
+	private static BufferedImage getBallStatsImage(BallStatusInfo info) {
+		BufferedImage RectangleMarker = generalMap.get(RECTANGLE_MARKER);
+		int w = RectangleMarker.getWidth();
+		int h = RectangleMarker.getHeight();
+		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = img.createGraphics();
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+				RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		g2d.drawImage(RectangleMarker, 0, 0, null);
+		g2d.setPaint(Color.black);
+		g2d.setFont(new Font("Arial",Font.BOLD , 28));
+		String s = "Ball Status\r\n" +  info.toString();
+		FontMetrics fm = g2d.getFontMetrics();
+		int x = w / 10;
+		int y = 0;
+		// g2d.drawString(s, x, y);
+		drawString(g2d, s, x, y);
+		g2d.dispose();
+		return img;
+	}
+
+	public static BufferedImage getGreenViewImage(GreenView view){
+		BufferedImage greenView = generalMap.get(GREEN_VIEW);
+		int w = greenView.getWidth();
+		int h = greenView.getHeight();
+		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = img.createGraphics();
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+				RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		g2d.drawImage(greenView, 0, 0, null);
+		
+		double yardToPixelRatio = view.getViewSize()/w;
+		// draw flying ball.
+		if(view.getFlyingPosition()!=null){
+//			double xYard= view.getFlyBallToCenterDistanceX();
+//			double zYard= view.getFlyBallToCenterDistanceZ();
+			
+			//System.out.println(view.getFlyBallAbsoluteX() + " " + view.getFlyBallAbsoluteZ());
+			
+			int imageX = (int)(view.getFlyBallAbsoluteX() /yardToPixelRatio);
+			int imageY = h - (int)(view.getFlyBallAbsoluteZ() /yardToPixelRatio); // reverse Y 
+
+			Ellipse2D.Double circle = new Ellipse2D.Double(imageX-4,imageY-4, 8, 8); // shift center
+			g2d.fill(circle);
+		}
+		ArrayList<Position> absPositions = view.getLandedBallsAbsolute();
+		if(absPositions!=null){
+			for(Position p : absPositions){
+				int imageX = (int)(p.x /yardToPixelRatio);
+				int imageY = h - (int)(p.z /yardToPixelRatio); // reverse Y
+				g2d.setPaint(Color.BLUE); // landed ball color
+				Ellipse2D.Double circle = new Ellipse2D.Double(imageX-4,imageY-4, 8, 8); // shift center 
+				
+				g2d.fill(circle);
+			}
+		}
+		g2d.dispose();
+		
+		return img;
+		
+	}
+	/****************** private methods ends *************/
+
+	/****************** properties ******************/
+
+	public static int getCount() {
+		return plotElementMap.size() + generalMap.size();
+	}
+
+	public static BufferedImage getBackground() {
+		return generalMap.get(BACKGROUND);
+	}
+	public static BufferedImage getBackPanelImage() {
+		return generalMap.get(BACKPANEL);
+	}
+
+	/****************** properties ends *************/
+
+	/****************** public methods ******************/
+	public static void initialize() {
+		if (initialied == false) { // to avoid second call.
+			cacheImages();
+			initialied = true;
+		}
+	}
+
+	public static void cacheImages() {
+		BufferedImage bufferedImage;
+		try {
+			if (plotElementMap == null) {
+				plotElementMap = new HashMap<Class<? extends APlotElement>, BufferedImage>();
+			}
+			if (generalMap == null) {
+				generalMap = new HashMap<String, BufferedImage>();
+			}
+
+			// cache plot element images
+			bufferedImage = ImageIO
+					.read(new File(IMAGE_ROOT + "golf_ball.png"));
+			plotElementMap.put(Ball.class, bufferedImage);
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "Cloud1.png"));
+			plotElementMap.put(Cloud.class, bufferedImage);
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "logo.png"));
+			plotElementMap.put(Logo.class, bufferedImage);
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "Tee.png"));
+			plotElementMap.put(Tee.class, bufferedImage);
+			
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "Flag.png"));
+			plotElementMap.put(Flag.class, bufferedImage);
+			
+			
+			
+			// cache general images
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT
+					+ "background_1.png"));
+			generalMap.put(BACKGROUND, bufferedImage);
+			
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT
+					+ "backPanel.png"));
+			generalMap.put(BACKPANEL, bufferedImage);
+/*
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "100Sign.png"));
+			generalMap.put(DISTANCESIGN100, bufferedImage);
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "150Sign.png"));
+			generalMap.put(DISTANCESIGN150, bufferedImage);
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "200Sign.png"));
+			generalMap.put(DISTANCESIGN200, bufferedImage);
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "250Sign.png"));
+			generalMap.put(DISTANCESIGN250, bufferedImage);
+*/
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT
+					+ "BtnCreateUser.png"));
+			generalMap.put(CREATEUSER, bufferedImage);
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "BtnLogin.png"));
+			generalMap.put(LOGIN, bufferedImage);
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "BtnGame.png"));
+//			bufferedImage = resizeMenuImage(bufferedImage);
+			generalMap.put(GAME, bufferedImage);
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "BtnTrain.png"));
+			generalMap.put(TRAIN, bufferedImage);
+
+			bufferedImage = ImageIO
+					.read(new File(IMAGE_ROOT + "BtnHistory.png"));
+			generalMap.put(HISTORY, bufferedImage);
+
+			bufferedImage = ImageIO
+					.read(new File(IMAGE_ROOT + "BtnAchieve.png"));
+			generalMap.put(ACHIEVEMENTS, bufferedImage);
+
+			bufferedImage = ImageIO
+					.read(new File(IMAGE_ROOT + "BtnHighScr.png"));
+			generalMap.put(HIGHSCORE, bufferedImage);
+
+			bufferedImage = ImageIO
+					.read(new File(IMAGE_ROOT + "BtnLogout.png"));
+			generalMap.put(LOGOUT, bufferedImage);
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT
+					+ "Rectangle-Marker.png"));
+			generalMap.put(RECTANGLE_MARKER, bufferedImage);
+
+			bufferedImage = ImageIO.read(new File(IMAGE_ROOT + "GreenView.png"));
+			generalMap.put(GREEN_VIEW, bufferedImage);
+			
+			cacheShadowImages();
+
+			cacheAnimatedImages();
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+//	private static BufferedImage resizeMenuImage(BufferedImage image){
+//		BufferedImage newImage = new BufferedImage(302, 48, BufferedImage.TYPE_INT_RGB);
+//
+//		Graphics g = newImage.createGraphics();
+//		g.drawImage(image, 0, 0, 302, 48, null);
+//		g.dispose();
+//		return newImage;
+//	}
+	public static BufferedImage getDistanceSign(DistanceSign d) {
+
+		return getDynamicDistanceSign(d.getPosition().getZ());
+
+		//
+		// if (d.getPosition().getZ() == 100) {
+		// return generalMap.get("DistanceSign100");
+		// } else if (d.getPosition().getZ() == 150) {
+		// return generalMap.get("DistanceSign150");
+		// } else if (d.getPosition().getZ() == 200) {
+		// return generalMap.get("DistanceSign200");
+		// } else if (d.getPosition().getZ() == 250) {
+		// return generalMap.get("DistanceSign250");
+		// } else {
+		// return null;
+		// }
+	}
+
+	public static BufferedImage getBallStatusImage(BallStatusInfo info) {
+		return getBallStatsImage(info);
+	}
+
+	public static BufferedImage getTrajectoryImage(PlotableTrajectory pt) {
+		BufferedImage RectangleMarker = generalMap.get(RECTANGLE_MARKER);
+		int w = RectangleMarker.getWidth();
+		int h = RectangleMarker.getHeight();
+		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = img.createGraphics();
+		// g2d.setRenderingHint(
+		// RenderingHints.KEY_TEXT_ANTIALIASING,
+		// RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		// draw background
+		g2d.drawImage(RectangleMarker, 0, 0, null);
+		// draw lines
+		int drawWidth = w;
+		int drawHeight = h / 2; // only draw on top half of marker.
+		
+		Trajectory t = pt.getTrajectory(); // draw if not null. else draw background only.
+		if(t!=null){
+			g2d.drawImage(getPureTrajectoryImage(pt.getTrajectory()), 0, 0, null);
+		}
+		g2d.dispose();
+		return img;
+	}
+
+	private static BufferedImage getPureTrajectoryImage(Trajectory t) {
+		final int W = 300;
+		final int H = 135;
+		BufferedImage img = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = img.createGraphics();
+		g2d.setPaint(Color.BLUE);
+		// g2d.setColor(Color.WHITE);
+		// g2d.fillRect(0, 0, W, H);
+		// g2d.setColor(Color.BLACK);
+		int x1=0, y1=0, x2=0, y2=0;
+		g2d.setStroke(new BasicStroke(5));
+		for (int i = 0; i < t.getPositions().size() - 1; i++) { // stop at
+																// second last
+																// one.
+			Position p1 = t.getPositions().get(i);
+			Position p2 = t.getPositions().get(i + 1);
+			x1 = (int) p1.z;
+			y1 = (int) (p1.y * 10);
+			x2 = (int) p2.z;
+			y2 = (int) (p2.y * 10);
+			g2d.drawLine(x1, H - y1, x2, H - y2); // invert height.
+			//System.out.println(x1 + " " + y1 + " " + x2 + " " + y2);
+		}
+		g2d.setPaint(Color.white);
+		// -7 to move ball to header on line.
+		Ellipse2D.Double circle = new Ellipse2D.Double((double)x1-7, (H-(double)y1)-7, 15, 15);
+		g2d.fill(circle);
+
+		return img;
+	}
+
+	public static BufferedImage getButtonImage(String button) {
+		if (button.equals("createUser")) {
+			return generalMap.get("CreateUser");
+		} else if (button.equals("login")) {
+			return generalMap.get("Login");
+		} else if (button.equals("game")) {
+			return generalMap.get("Game");
+		} else if (button.equals("train")) {
+			return generalMap.get("Train");
+		} else if (button.equals("history")) {
+			return generalMap.get("History");
+		} else if (button.equals("highScore")) {
+			return generalMap.get("HighScore");
+		} else if (button.equals("achievements")) {
+			return generalMap.get("Achievements");
+		} else if (button.equals("logout")) {
+			return generalMap.get("Logout");
+		}
+
+		else {
+			return null;
+		}
+	}
+	public static ImageIcon scaleIcon(BufferedImage image, int width, int height){
+		ImageIcon icon= new ImageIcon(image);
+		Image img = icon.getImage() ;  
+		Image newimg = img.getScaledInstance( width, height,  java.awt.Image.SCALE_SMOOTH ) ;  
+		return new ImageIcon(newimg );
+	}
+	
+	public static BufferedImage getPlotElementImage(Class type) {
+		return plotElementMap.get(type);
+	}
+
+	public static BufferedImage getShadowImage(Class type) {
+		return shadowMap.get(type);
+	}
+
+	public static BufferedImage getAnimatedImage(AAnimatedElement ae) {
+		ArrayList<BufferedImage> subImages = animatedElementMap.get(ae
+				.getClass());
+		if (ae.getCurrentFrameIndex() < subImages.size()) {
+			BufferedImage image = subImages.get(ae.getCurrentFrameIndex());
+			return image;
+		} else {
+			return null;
+		}
+	}
+	public static BufferedImage getImage(String imageName){
+		try {
+			return ImageIO.read(new File(IMAGE_ROOT + imageName +".png"));
+		} catch (IOException e) {
+			return null;
+		}
+	}
+	/****************** public methods ends *************/
+
+}
